@@ -6,6 +6,7 @@ use App\Repository\MatchTourRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: MatchTourRepository::class)]
 class MatchTour
@@ -13,9 +14,11 @@ class MatchTour
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['matchtour:read', 'planning:read', 'score:read'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'matchTours')]
+    #[Groups(['matchtour:read'])]
     private ?Poule $poule = null;
 
     /**
@@ -36,30 +39,12 @@ class MatchTour
         $this->plannings = new ArrayCollection();
     }
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
+    public function getId(): ?int { return $this->id; }
 
-    public function getPoule(): ?Poule
-    {
-        return $this->poule;
-    }
+    public function getPoule(): ?Poule { return $this->poule; }
+    public function setPoule(?Poule $poule): static { $this->poule = $poule; return $this; }
 
-    public function setPoule(?Poule $poule): static
-    {
-        $this->poule = $poule;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Score>
-     */
-    public function getScores(): Collection
-    {
-        return $this->scores;
-    }
+    public function getScores(): Collection { return $this->scores; }
 
     public function addScore(Score $score): static
     {
@@ -67,7 +52,6 @@ class MatchTour
             $this->scores->add($score);
             $score->addMatchTour($this);
         }
-
         return $this;
     }
 
@@ -76,17 +60,10 @@ class MatchTour
         if ($this->scores->removeElement($score)) {
             $score->removeMatchTour($this);
         }
-
         return $this;
     }
 
-    /**
-     * @return Collection<int, Planning>
-     */
-    public function getPlannings(): Collection
-    {
-        return $this->plannings;
-    }
+    public function getPlannings(): Collection { return $this->plannings; }
 
     public function addPlanning(Planning $planning): static
     {
@@ -94,19 +71,16 @@ class MatchTour
             $this->plannings->add($planning);
             $planning->setMatchTour($this);
         }
-
         return $this;
     }
 
     public function removePlanning(Planning $planning): static
     {
         if ($this->plannings->removeElement($planning)) {
-            // set the owning side to null (unless already changed)
             if ($planning->getMatchTour() === $this) {
                 $planning->setMatchTour(null);
             }
         }
-
         return $this;
     }
 }

@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: TournoiRepository::class)]
 class Tournoi
@@ -14,21 +15,26 @@ class Tournoi
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['tournoi:read', 'participant:read', 'poule:read'])]
     private ?int $id = null;
 
     #[ORM\Column]
+    #[Groups(['tournoi:read'])]
     private ?bool $equipe = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[Groups(['tournoi:read'])]
     private ?\DateTime $date = null;
 
     #[ORM\Column(length: 50)]
+    #[Groups(['tournoi:read'])]
     private ?string $etat = null;
 
     /**
      * @var Collection<int, Poule>
      */
     #[ORM\OneToMany(targetEntity: Poule::class, mappedBy: 'tournoi')]
+    #[Groups(['tournoi:read'])]
     private Collection $poules;
 
     /**
@@ -38,6 +44,7 @@ class Tournoi
     private Collection $participants;
 
     #[ORM\OneToOne(mappedBy: 'tournoi', cascade: ['persist', 'remove'])]
+    #[Groups(['tournoi:read'])]
     private ?Parametre $parametre = null;
 
     public function __construct()
@@ -46,54 +53,18 @@ class Tournoi
         $this->participants = new ArrayCollection();
     }
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
+    public function getId(): ?int { return $this->id; }
 
-    public function isEquipe(): ?bool
-    {
-        return $this->equipe;
-    }
+    public function isEquipe(): ?bool { return $this->equipe; }
+    public function setEquipe(bool $equipe): static { $this->equipe = $equipe; return $this; }
 
-    public function setEquipe(bool $equipe): static
-    {
-        $this->equipe = $equipe;
+    public function getDate(): ?\DateTime { return $this->date; }
+    public function setDate(\DateTime $date): static { $this->date = $date; return $this; }
 
-        return $this;
-    }
+    public function getEtat(): ?string { return $this->etat; }
+    public function setEtat(string $etat): static { $this->etat = $etat; return $this; }
 
-    public function getDate(): ?\DateTime
-    {
-        return $this->date;
-    }
-
-    public function setDate(\DateTime $date): static
-    {
-        $this->date = $date;
-
-        return $this;
-    }
-
-    public function getEtat(): ?string
-    {
-        return $this->etat;
-    }
-
-    public function setEtat(string $etat): static
-    {
-        $this->etat = $etat;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Poule>
-     */
-    public function getPoules(): Collection
-    {
-        return $this->poules;
-    }
+    public function getPoules(): Collection { return $this->poules; }
 
     public function addPoule(Poule $poule): static
     {
@@ -101,7 +72,6 @@ class Tournoi
             $this->poules->add($poule);
             $poule->setTournoi($this);
         }
-
         return $this;
     }
 
@@ -112,48 +82,33 @@ class Tournoi
                 $poule->setTournoi(null);
             }
         }
-
         return $this;
     }
 
-    /**
-     * @return Collection<int, Participant>
-     */
-    public function getParticipants(): Collection
-    {
-        return $this->participants;
-    }
+    public function getParticipants(): Collection { return $this->participants; }
 
     public function addParticipant(Participant $participant): static
     {
         if (!$this->participants->contains($participant)) {
             $this->participants->add($participant);
         }
-
         return $this;
     }
 
     public function removeParticipant(Participant $participant): static
     {
         $this->participants->removeElement($participant);
-
         return $this;
     }
 
-    public function getParametre(): ?Parametre
-    {
-        return $this->parametre;
-    }
+    public function getParametre(): ?Parametre { return $this->parametre; }
 
     public function setParametre(?Parametre $parametre): static
     {
-        // set the owning side of the relation if necessary
         if ($parametre !== null && $parametre->getTournoi() !== $this) {
             $parametre->setTournoi($this);
         }
-
         $this->parametre = $parametre;
-
         return $this;
     }
 }
