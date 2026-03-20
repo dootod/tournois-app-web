@@ -35,7 +35,7 @@ import okhttp3.Response;
 public class MainActivity extends AppCompatActivity {
 
     // ── URL de base de votre API ─────────────────────────────────────────────
-    private static final String API_BASE_URL = "https://votre-api.com"; // TODO: remplacer
+    private static final String API_BASE_URL = "http://localhost/api"; 
     private static final String LOGIN_ENDPOINT = API_BASE_URL + "/api/auth/login";
     private static final String PREFS_NAME = "judo_prefs";
     private static final String KEY_TOKEN = "auth_token";
@@ -222,8 +222,7 @@ public class MainActivity extends AppCompatActivity {
     // ── Navigation ───────────────────────────────────────────────────────────
 
     private void navigateToDashboard() {
-        // TODO: remplacer DashboardActivity par votre activité principale
-        Intent intent = new Intent(this, DashboardActivity.class);
+        Intent intent = new Intent(this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
