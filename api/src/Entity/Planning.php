@@ -18,7 +18,7 @@ class Planning
     private ?\DateTime $heure_debut = null;
 
     #[ORM\Column(type: Types::TIME_MUTABLE)]
-    private ?\DateTime $heare_fin = null;
+    private ?\DateTime $heure_fin = null;
 
     #[ORM\ManyToOne(inversedBy: 'plannings')]
     private ?Tatami $tatami = null;
@@ -43,14 +43,14 @@ class Planning
         return $this;
     }
 
-    public function getHeareFin(): ?\DateTime
+    public function getHeureFin(): ?\DateTime
     {
-        return $this->heare_fin;
+        return $this->heure_fin;
     }
 
-    public function setHeareFin(\DateTime $heare_fin): static
+    public function setHeureFin(\DateTime $heure_fin): static
     {
-        $this->heare_fin = $heare_fin;
+        $this->heure_fin = $heure_fin;
 
         return $this;
     }

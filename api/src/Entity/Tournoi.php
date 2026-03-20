@@ -37,6 +37,9 @@ class Tournoi
     #[ORM\ManyToMany(targetEntity: Participant::class, inversedBy: 'tournois')]
     private Collection $participants;
 
+    #[ORM\OneToOne(mappedBy: 'tournoi', cascade: ['persist', 'remove'])]
+    private ?Parametre $parametre = null;
+
     public function __construct()
     {
         $this->poules = new ArrayCollection();
@@ -105,7 +108,6 @@ class Tournoi
     public function removePoule(Poule $poule): static
     {
         if ($this->poules->removeElement($poule)) {
-            // set the owning side to null (unless already changed)
             if ($poule->getTournoi() === $this) {
                 $poule->setTournoi(null);
             }
@@ -134,6 +136,23 @@ class Tournoi
     public function removeParticipant(Participant $participant): static
     {
         $this->participants->removeElement($participant);
+
+        return $this;
+    }
+
+    public function getParametre(): ?Parametre
+    {
+        return $this->parametre;
+    }
+
+    public function setParametre(?Parametre $parametre): static
+    {
+        // set the owning side of the relation if necessary
+        if ($parametre !== null && $parametre->getTournoi() !== $this) {
+            $parametre->setTournoi($this);
+        }
+
+        $this->parametre = $parametre;
 
         return $this;
     }

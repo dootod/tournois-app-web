@@ -32,6 +32,10 @@ class Parametre
     #[ORM\Column]
     private ?int $nb_surfaces = null;
 
+    #[ORM\OneToOne(inversedBy: 'parametre')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Tournoi $tournoi = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -105,6 +109,18 @@ class Parametre
     public function setNbSurfaces(int $nb_surfaces): static
     {
         $this->nb_surfaces = $nb_surfaces;
+
+        return $this;
+    }
+
+    public function getTournoi(): ?Tournoi
+    {
+        return $this->tournoi;
+    }
+
+    public function setTournoi(?Tournoi $tournoi): static
+    {
+        $this->tournoi = $tournoi;
 
         return $this;
     }
