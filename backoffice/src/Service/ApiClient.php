@@ -108,6 +108,7 @@ class ApiClient
 
     // ─── MATCHS ─────────────────────────────────────────────────────────────
 
+    public function getMatchs(): array { return $this->request('GET', '/matchs') ?? []; }
     public function getMatch(int $id): ?array { return $this->request('GET', '/matchs/' . $id); }
     public function createMatch(array $data): ?array { return $this->request('POST', '/matchs', $data); }
     public function updateMatch(int $id, array $data): ?array { return $this->request('PUT', '/matchs/' . $id, $data); }

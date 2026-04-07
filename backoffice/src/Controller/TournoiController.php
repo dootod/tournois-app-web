@@ -101,6 +101,7 @@ class TournoiController extends AbstractController
         }
 
         return $this->render('tournoi/show.html.twig', [
+            'id'                   => $id,
             'tournoi'              => $tournoi,
             'participants'         => $participants,
             'poules'               => $poules,

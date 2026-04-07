@@ -27,6 +27,15 @@ class MatchTourController extends AbstractController
         private SerializerInterface $serializer,
     ) {}
 
+    // GET /api/matchs
+    #[Route('', name: 'matchtour_index', methods: ['GET'])]
+    public function index(): JsonResponse
+    {
+        $matchs = $this->matchTourRepository->findAll();
+        $data = $this->serializer->serialize($matchs, 'json', ['groups' => 'matchtour:read']);
+        return new JsonResponse($data, Response::HTTP_OK, [], true);
+    }
+
     // GET /api/matchs/{id}
     #[Route('/{id}', name: 'matchtour_show', methods: ['GET'])]
     public function show(int $id): JsonResponse
