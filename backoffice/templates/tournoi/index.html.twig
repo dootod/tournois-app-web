@@ -1,0 +1,98 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tournois — Judo Club{% endblock %}
+{% block breadcrumb %}Tournois{% endblock %}
+
+{% block topbar_actions %}
+    <a href="{{ path('app_tournoi_new') }}" class="btn btn-primary btn-sm">+ Nouveau tournoi</a>
+{% endblock %}
+
+{% block body %}
+
+<div class="page-header">
+    <div class="page-header-left">
+        <div class="page-eyebrow">Compétition</div>
+        <h1>Tournois</h1>
+        <div class="page-subtitle">{{ tournois|length }} tournoi{{ tournois|length > 1 ? 's' : '' }}</div>
+    </div>
+</div>
+
+<div class="card">
+    {% if tournois is empty %}
+        <div class="empty-state">
+            <div class="empty-icon">🏆</div>
+            <p>Aucun tournoi créé</p>
+            <a href="{{ path('app_tournoi_new') }}" class="btn btn-primary">Créer le premier tournoi</a>
+        </div>
+    {% else %}
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Prix</th>
+                        <th>État</th>
+                        <th>Poules</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in tournois %}
+                    <tr>
+                        <td class="text-mono text-muted" style="font-size: 11px;">{{ t.id }}</td>
+                        <td>
+                            <a href="{{ path('app_tournoi_show', {id: t.id}) }}"
+                               style="color: var(--blanc); text-decoration: none; font-weight: 500;">
+                                🏆 Tournoi du {{ t.date ? t.date|date('d/m/Y') : '—' }}
+                            </a>
+                        </td>
+                        <td>
+                            {% if t.equipe %}
+                                <span class="badge badge-blue">Équipe</span>
+                            {% else %}
+                                <span class="badge badge-grey">Individuel</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted" style="font-size: 13px;">
+                            {% if t.prix_participation %}
+                                {{ t.prix_participation }} €
+                            {% else %}
+                                <span style="color: var(--gris-moyen);">Gratuit</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if t.etat == 'ouvert' %}
+                                <span class="badge badge-green">Ouvert</span>
+                            {% elseif t.etat == 'en_cours' %}
+                                <span class="badge badge-orange">En cours</span>
+                            {% elseif t.etat == 'termine' %}
+                                <span class="badge badge-grey">Terminé</span>
+                            {% elseif t.etat == 'annule' %}
+                                <span class="badge badge-red">Annulé</span>
+                            {% else %}
+                                <span class="badge badge-grey">{{ t.etat }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-mono text-muted">
+                            {{ t.poules is defined ? t.poules|length : 0 }}
+                        </td>
+                        <td>
+                            <div class="actions-cell">
+                                <a href="{{ path('app_tournoi_show', {id: t.id}) }}" class="btn btn-ghost btn-sm">Gérer</a>
+                                <form method="post" action="{{ path('app_tournoi_delete', {id: t.id}) }}"
+                                      onsubmit="return confirm('Supprimer ce tournoi ?')">
+                                    <button type="submit" class="btn btn-danger btn-sm">✕</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}

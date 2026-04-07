@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Judo Club — Back Office{% endblock %}</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥋</text></svg>">
+    {% block stylesheets %}
+        {{ importmap('app') }}
+    {% endblock %}
+</head>
+<body>
+
+<div class="app-wrapper">
+
+    {# ── SIDEBAR ─────────────────────────────────────────────────────────── #}
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <span class="logo-kanji">柔道</span>
+            <span class="logo-title">JUDO CLUB</span>
+            <div class="logo-sub">Back Office</div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section-label">Navigation</div>
+
+            <a href="{{ path('app_dashboard') }}" class="nav-item {{ app.request.attributes.get('_route') == 'app_dashboard' ? 'active' : '' }}">
+                <span class="nav-icon">⬛</span>
+                Dashboard
+            </a>
+
+            <div class="nav-section-label">Club</div>
+
+            <a href="{{ path('app_adherents') }}" class="nav-item {{ app.request.attributes.get('_route') starts with 'app_adherent' ? 'active' : '' }}">
+                <span class="nav-icon">👤</span>
+                Adhérents
+            </a>
+
+            <div class="nav-section-label">Compétition</div>
+
+            <a href="{{ path('app_tournois') }}" class="nav-item {{ app.request.attributes.get('_route') starts with 'app_tournoi' ? 'active' : '' }}">
+                <span class="nav-icon">🏆</span>
+                Tournois
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            v2.0 — AP4 2026
+        </div>
+    </aside>
+
+    {# ── MAIN ─────────────────────────────────────────────────────────────── #}
+    <div class="main-content">
+
+        <header class="topbar">
+            <div class="topbar-breadcrumb">
+                <span>Back Office</span>
+                <span class="sep">›</span>
+                <span class="current">{% block breadcrumb %}Dashboard{% endblock %}</span>
+            </div>
+            <div class="topbar-actions">
+                {% block topbar_actions %}{% endblock %}
+            </div>
+        </header>
+
+        <main class="page-content">
+            {% for message in app.flashes('success') %}
+                <div class="alert alert-success">✓ {{ message }}</div>
+            {% endfor %}
+            {% for message in app.flashes('error') %}
+                <div class="alert alert-danger">✕ {{ message }}</div>
+            {% endfor %}
+
+            {% block body %}{% endblock %}
+        </main>
+
+    </div>
+</div>
+
+{% block javascripts %}{% endblock %}
+
+</body>
+</html>

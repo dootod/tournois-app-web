@@ -1,0 +1,91 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Adhérents — Judo Club{% endblock %}
+{% block breadcrumb %}Adhérents{% endblock %}
+
+{% block topbar_actions %}
+    <a href="{{ path('app_adherent_new') }}" class="btn btn-primary btn-sm">+ Nouvel adhérent</a>
+{% endblock %}
+
+{% block body %}
+
+<div class="page-header">
+    <div class="page-header-left">
+        <div class="page-eyebrow">Club</div>
+        <h1>Adhérents</h1>
+        <div class="page-subtitle">{{ adherents|length }} membre{{ adherents|length > 1 ? 's' : '' }} enregistré{{ adherents|length > 1 ? 's' : '' }}</div>
+    </div>
+</div>
+
+<div class="card">
+    {% if adherents is empty %}
+        <div class="empty-state">
+            <div class="empty-icon">👤</div>
+            <p>Aucun adhérent pour le moment</p>
+            <a href="{{ path('app_adherent_new') }}" class="btn btn-primary">Ajouter le premier adhérent</a>
+        </div>
+    {% else %}
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nom</th>
+                        <th>Ceinture</th>
+                        <th>Poids</th>
+                        <th>Naissance</th>
+                        <th>Adhésion</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in adherents %}
+                    <tr>
+                        <td class="text-mono text-muted" style="font-size: 11px;">{{ a.id }}</td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div class="avatar-initials">{{ a.nom|first }}{{ a.prenom|first }}</div>
+                                <div>
+                                    <div style="font-weight: 500; color: var(--blanc);">{{ a.prenom }} {{ a.nom }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="text-mono" style="font-size: 12px;">{{ a.ceinture }}</span>
+                        </td>
+                        <td class="text-muted">
+                            {% if a.poids %}
+                                {{ a.poids }} kg
+                            {% else %}
+                                <span style="color: var(--gris-moyen);">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-mono text-muted" style="font-size: 12px;">
+                            {{ a.date_naissance ? a.date_naissance|date('d/m/Y') : '—' }}
+                        </td>
+                        <td class="text-mono text-muted" style="font-size: 12px;">
+                            {{ a.date_adhesion ? a.date_adhesion|date('d/m/Y') : '—' }}
+                        </td>
+                        <td>
+                            <div class="actions-cell">
+                                <a href="{{ path('app_adherent_edit', {id: a.id}) }}" class="btn btn-ghost btn-sm">Modifier</a>
+
+                                <form method="post" action="{{ path('app_adherent_renouvellement', {id: a.id}) }}" style="display: inline;">
+                                    <button type="submit" class="btn btn-ghost btn-sm" title="Renouveler l'adhésion">↻</button>
+                                </form>
+
+                                <form method="post" action="{{ path('app_adherent_delete', {id: a.id}) }}" style="display: inline;"
+                                      onsubmit="return confirm('Supprimer {{ a.prenom }} {{ a.nom }} ?')">
+                                    <button type="submit" class="btn btn-danger btn-sm">✕</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}

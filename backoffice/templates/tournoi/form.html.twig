@@ -1,0 +1,170 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ mode == 'create' ? 'Nouveau tournoi' : 'Modifier tournoi' }} — Judo Club{% endblock %}
+{% block breadcrumb %}
+    <a href="{{ path('app_tournois') }}" style="color: var(--gris-clair); text-decoration: none;">Tournois</a>
+    <span class="sep">›</span>
+    {{ mode == 'create' ? 'Nouveau' : 'Modifier' }}
+{% endblock %}
+
+{% block body %}
+
+<div class="page-header">
+    <div class="page-header-left">
+        <div class="page-eyebrow">Compétition</div>
+        <h1>{{ mode == 'create' ? 'Nouveau tournoi' : 'Modifier le tournoi' }}</h1>
+    </div>
+    <a href="{{ path('app_tournois') }}" class="btn btn-ghost">← Retour</a>
+</div>
+
+<form method="post">
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start;">
+
+    {# Informations générales #}
+    <div class="card">
+        <div class="card-header"><span class="card-title">Informations générales</span></div>
+        <div class="card-body">
+
+            <div class="form-group">
+                <label class="form-label">Date du tournoi</label>
+                <input type="date" name="date" class="form-control" required
+                       value="{{ tournoi and tournoi.date ? tournoi.date|date('Y-m-d') : '' }}">
+            </div>
+
+            {% if mode == 'create' %}
+            <div class="form-group">
+                <label class="form-label">Type de tournoi</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px;">
+                    <label style="cursor: pointer;">
+                        <input type="radio" name="equipe" value="0" checked
+                               style="display:none;" id="type-individuel">
+                        <div class="type-card" onclick="selectType(0)" id="card-individuel"
+                             style="padding: 14px; border-radius: 8px; border: 2px solid var(--accent); background: rgba(99,102,241,.1); text-align: center; cursor: pointer;">
+                            <div style="font-size: 22px; margin-bottom: 4px;">🥋</div>
+                            <div style="font-weight: 600; color: var(--blanc); font-size: 14px;">Individuel</div>
+                            <div style="font-size: 11px; color: var(--gris-moyen); margin-top: 2px;">Combats 1 vs 1</div>
+                        </div>
+                    </label>
+                    <label style="cursor: pointer;">
+                        <input type="radio" name="equipe" value="1"
+                               style="display:none;" id="type-equipe">
+                        <div class="type-card" onclick="selectType(1)" id="card-equipe"
+                             style="padding: 14px; border-radius: 8px; border: 2px solid rgba(255,255,255,.1); background: rgba(255,255,255,.03); text-align: center; cursor: pointer;">
+                            <div style="font-size: 22px; margin-bottom: 4px;">👥</div>
+                            <div style="font-weight: 600; color: var(--blanc); font-size: 14px;">Par équipe</div>
+                            <div style="font-size: 11px; color: var(--gris-moyen); margin-top: 2px;">Équipes s'affrontent</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label class="form-label">Prix de participation (€)</label>
+                <input type="number" name="prix_participation" class="form-control" step="0.01" min="0"
+                       placeholder="0.00 = gratuit"
+                       value="{{ tournoi and tournoi.prix_participation ? tournoi.prix_participation : '' }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">IBAN du club (pour virement)</label>
+                <input type="text" name="iban" class="form-control"
+                       placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX"
+                       value="{{ tournoi and tournoi.iban ? tournoi.iban : '' }}">
+                <div style="font-size: 11px; color: var(--gris-moyen); margin-top: 4px;">
+                    Affiché aux participants pour le paiement par virement.
+                </div>
+            </div>
+
+            {% if mode == 'edit' %}
+            <div class="form-group">
+                <label class="form-label">État</label>
+                <select name="etat" class="form-control">
+                    <option value="ouvert" {{ tournoi.etat == 'ouvert' ? 'selected' : '' }}>Ouvert</option>
+                    <option value="en_cours" {{ tournoi.etat == 'en_cours' ? 'selected' : '' }}>En cours</option>
+                    <option value="termine" {{ tournoi.etat == 'termine' ? 'selected' : '' }}>Terminé</option>
+                    <option value="annule" {{ tournoi.etat == 'annule' ? 'selected' : '' }}>Annulé</option>
+                </select>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+
+    {# Paramètres (création uniquement) #}
+    {% if mode == 'create' %}
+    <div class="card">
+        <div class="card-header"><span class="card-title">Paramètres</span></div>
+        <div class="card-body">
+
+            <div class="form-group">
+                <label class="form-label">Durée d'un combat (minutes)</label>
+                <input type="number" name="temps_combat" class="form-control" step="0.5" min="1" value="5">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Min. participants / poule</label>
+                    <input type="number" name="min_poule" class="form-control" min="2" value="3">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Max. participants / poule</label>
+                    <input type="number" name="max_poule" class="form-control" min="2" value="6">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Max. participants</label>
+                    <input type="number" name="max_participants" class="form-control" min="4" value="32">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nombre de tatamis</label>
+                    <input type="number" name="nb_tatamis" class="form-control" min="1" value="2">
+                    <div style="font-size: 11px; color: var(--gris-moyen); margin-top: 4px;">
+                        Max. matchs simultanés par créneau.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<div style="margin-top: 16px; display: flex; gap: 10px; justify-content: flex-end;">
+    <a href="{{ path('app_tournois') }}" class="btn btn-ghost">Annuler</a>
+    <button type="submit" class="btn btn-primary">
+        {{ mode == 'create' ? '+ Créer le tournoi' : 'Enregistrer' }}
+    </button>
+</div>
+
+</form>
+
+{% endblock %}
+
+{% block javascripts %}
+<script>
+function selectType(val) {
+    const cardI = document.getElementById('card-individuel');
+    const cardE = document.getElementById('card-equipe');
+    const radioI = document.getElementById('type-individuel');
+    const radioE = document.getElementById('type-equipe');
+
+    if (val === 0) {
+        radioI.checked = true;
+        cardI.style.border = '2px solid var(--accent)';
+        cardI.style.background = 'rgba(99,102,241,.1)';
+        cardE.style.border = '2px solid rgba(255,255,255,.1)';
+        cardE.style.background = 'rgba(255,255,255,.03)';
+    } else {
+        radioE.checked = true;
+        cardE.style.border = '2px solid var(--accent)';
+        cardE.style.background = 'rgba(99,102,241,.1)';
+        cardI.style.border = '2px solid rgba(255,255,255,.1)';
+        cardI.style.background = 'rgba(255,255,255,.03)';
+    }
+}
+</script>
+{% endblock %}

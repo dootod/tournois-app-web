@@ -1,0 +1,76 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ mode == 'create' ? 'Nouvel adhérent' : 'Modifier adhérent' }} — Judo Club{% endblock %}
+{% block breadcrumb %}
+    <a href="{{ path('app_adherents') }}" style="color: var(--gris-clair); text-decoration: none;">Adhérents</a>
+    <span class="sep">›</span>
+    {{ mode == 'create' ? 'Nouveau' : 'Modifier' }}
+{% endblock %}
+
+{% block body %}
+
+<div class="page-header">
+    <div class="page-header-left">
+        <div class="page-eyebrow">Club</div>
+        <h1>{{ mode == 'create' ? 'Nouvel adhérent' : 'Modifier l\'adhérent' }}</h1>
+    </div>
+    <a href="{{ path('app_adherents') }}" class="btn btn-ghost">← Retour</a>
+</div>
+
+<div class="card" style="max-width: 640px;">
+    <div class="card-header">
+        <span class="card-title">Informations personnelles</span>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Nom</label>
+                    <input type="text" name="nom" class="form-control" required
+                           value="{{ adherent ? adherent.nom : '' }}" placeholder="Dupont">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Prénom</label>
+                    <input type="text" name="prenom" class="form-control" required
+                           value="{{ adherent ? adherent.prenom : '' }}" placeholder="Jean">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Date de naissance</label>
+                    <input type="date" name="date_naissance" class="form-control" required
+                           value="{{ adherent and adherent.date_naissance ? adherent.date_naissance|date('Y-m-d') : '' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Poids (kg)</label>
+                    <input type="number" name="poids" class="form-control" step="0.01" min="0"
+                           value="{{ adherent ? adherent.poids : '' }}" placeholder="73.5">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Ceinture</label>
+                <select name="ceinture" class="form-control" required>
+                    {% set ceintures = ['blanche', 'jaune', 'orange', 'verte', 'bleue', 'marron', 'noire', '1er dan', '2ème dan', '3ème dan'] %}
+                    {% for c in ceintures %}
+                        <option value="{{ c }}" {{ adherent and adherent.ceinture == c ? 'selected' : '' }}>
+                            {{ c|capitalize }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="divider"></div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <a href="{{ path('app_adherents') }}" class="btn btn-ghost">Annuler</a>
+                <button type="submit" class="btn btn-primary">
+                    {{ mode == 'create' ? '+ Créer l\'adhérent' : 'Enregistrer les modifications' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
