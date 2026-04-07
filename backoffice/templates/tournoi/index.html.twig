@@ -81,10 +81,10 @@
                         <td>
                             <div class="actions-cell">
                                 <a href="{{ path('app_tournoi_show', {id: t.id}) }}" class="btn btn-ghost btn-sm">Gérer</a>
-                                <form method="post" action="{{ path('app_tournoi_delete', {id: t.id}) }}"
-                                      onsubmit="return confirm('Supprimer ce tournoi ?')">
-                                    <button type="submit" class="btn btn-danger btn-sm">✕</button>
-                                </form>
+                                <button type="button" class="btn btn-danger btn-sm" 
+                                        onclick="confirmDelete({{ t.id }}, '{{ t.date|date('d/m/Y') }}')">
+                                    ✕ Supprimer
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -94,5 +94,25 @@
         </div>
     {% endif %}
 </div>
+
+{# Formulaire caché pour suppression #}
+<form id="delete-form" method="POST" style="display: none;">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete-tournoi') }}">
+</form>
+
+<script>
+function confirmDelete(id, date) {
+    const confirmed = confirm(
+        `Êtes-vous sûr de vouloir supprimer le tournoi du ${date} ?\n\n` +
+        '⚠️ Cette action est irréversible.'
+    );
+    
+    if (confirmed) {
+        const form = document.getElementById('delete-form');
+        form.action = "{{ path('app_tournoi_delete', {id: 'ID_PLACEHOLDER'}) }}".replace('ID_PLACEHOLDER', id);
+        form.submit();
+    }
+}
+</script>
 
 {% endblock %}

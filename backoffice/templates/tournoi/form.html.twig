@@ -17,66 +17,150 @@
     <a href="{{ path('app_tournois') }}" class="btn btn-ghost">← Retour</a>
 </div>
 
-<form method="post">
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start;">
+<div style="margin-bottom: 8px; display: flex; gap: 8px; align-items: center; padding: 0 0 12px 0; border-bottom: 1px solid rgba(255,255,255,.1);">
+    <span style="font-size: 24px;">ℹ️</span>
+    <div>
+        <div style="font-weight: 600; color: var(--blanc);">Mode de création</div>
+        <div style="font-size: 12px; color: var(--gris-moyen);">Définissez les paramètres essentiels pour votre tournoi</div>
+    </div>
+</div>
 
-    {# Informations générales #}
-    <div class="card">
-        <div class="card-header"><span class="card-title">Informations générales</span></div>
+<form method="post" onsubmit="return validateForm()">
+
+{% if mode == 'create' %}
+    {# Étape 1: Type de tournoi #}
+    <div class="card" style="margin-bottom: 16px;">
+        <div class="card-header"><span class="card-title">1. Type de tournoi</span></div>
         <div class="card-body">
+            <div class="form-group">
+                <label class="form-label" style="margin-bottom: 12px;">Sélectionnez le format</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <label style="cursor: pointer;">
+                        <input type="radio" name="equipe" value="0" checked
+                               style="display:none;" id="type-individuel" onchange="updateFromType()">
+                        <div class="type-card" onclick="selectType(0)" id="card-individuel"
+                             style="padding: 16px; border-radius: 8px; border: 2px solid var(--accent); background: rgba(99,102,241,.1); text-align: center; cursor: pointer; transition: all 0.2s;">
+                            <div style="font-size: 28px; margin-bottom: 8px;">🥋</div>
+                            <div style="font-weight: 600; color: var(--blanc); font-size: 15px;">Individuel</div>
+                            <div style="font-size: 12px; color: var(--gris-moyen); margin-top: 4px;">Combats 1 vs 1</div>
+                        </div>
+                    </label>
+                    <label style="cursor: pointer;">
+                        <input type="radio" name="equipe" value="1"
+                               style="display:none;" id="type-equipe" onchange="updateFromType()">
+                        <div class="type-card" onclick="selectType(1)" id="card-equipe"
+                             style="padding: 16px; border-radius: 8px; border: 2px solid rgba(255,255,255,.1); background: rgba(255,255,255,.03); text-align: center; cursor: pointer; transition: all 0.2s;">
+                            <div style="font-size: 28px; margin-bottom: 8px;">👥</div>
+                            <div style="font-weight: 600; color: var(--blanc); font-size: 15px;">Par équipe</div>
+                            <div style="font-size: 12px; color: var(--gris-moyen); margin-top: 4px;">Équipes s'affrontent</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    {# Étape 2: Informations essentielles #}
+    <div class="card" style="margin-bottom: 16px;">
+        <div class="card-header"><span class="card-title">2. Infos essentielles</span></div>
+        <div class="card-body">
+            <div class="form-group">
+                <label class="form-label">Date du tournoi *</label>
+                <input type="date" name="date" class="form-control" required
+                       value="{{ tournoi and tournoi.date ? tournoi.date|date('Y-m-d') : '' }}"
+                       oninput="validateDate(this)">
+                <div id="date-error" style="font-size: 12px; color: #ff6b6b; margin-top: 4px; display: none;"></div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Prix participation (€)</label>
+                    <input type="number" name="prix_participation" class="form-control" step="0.01" min="0"
+                           placeholder="0 = gratuit"
+                           value="{{ tournoi and tournoi.prix_participation ? tournoi.prix_participation : '0' }}"
+                           oninput="validatePrice(this)">
+                </div>
+                <div class="form-group" style="display: flex; flex-direction: column; justify-content: flex-end;">
+                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;">
+                        <input type="checkbox" name="has_iban" id="has-iban" onchange="toggleIban()">
+                        Ajouter IBAN pour virement
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group" id="iban-group" style="display: none;">
+                <label class="form-label">IBAN du club</label>
+                <input type="text" name="iban" class="form-control"
+                       placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX"
+                       value="{{ tournoi and tournoi.iban ? tournoi.iban : '' }}"
+                       oninput="validateIban(this)">
+                <div id="iban-error" style="font-size: 12px; color: #ff6b6b; margin-top: 4px; display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    {# Étape 3: Paramètres avancés (collapsible) #}
+    <div class="card" style="margin-bottom: 16px;">
+        <div class="card-header" style="cursor: pointer;" onclick="toggleAdvanced()">
+            <span class="card-title" style="display: flex; gap: 8px; align-items: center;">
+                ⚙️ Paramètres avancés
+                <span id="advanced-toggle" style="font-size: 14px; margin-left: auto;">▼</span>
+            </span>
+        </div>
+        <div id="advanced-section" class="card-body" style="display: none;">
+            <div style="background: rgba(99,102,241,.05); padding: 12px; border-radius: 6px; margin-bottom: 16px; border-left: 3px solid var(--accent);">
+                <div style="font-size: 12px; color: var(--gris-moyen);">
+                    💡 Les valeurs par défaut conviennent à la plupart des tournois. Modifiez-les seulement si nécessaire.
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Durée d'un combat (min)</label>
+                    <input type="number" name="temps_combat" class="form-control" step="0.5" min="1" max="30" value="5"
+                           oninput="validateDuration(this)">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Max. participants</label>
+                    <input type="number" name="max_participants" class="form-control" min="4" max="256" value="32"
+                           oninput="validateMax(this)">
+                </div>
+            </div>
+
+            <div style="background: rgba(255,255,255,.02); padding: 12px; border-radius: 6px; margin: 12px 0; border: 1px dashed rgba(255,255,255,.1);">
+                <div style="font-size: 13px; font-weight: 500; color: var(--blanc); margin-bottom: 8px;">⚡ Gestion des poules</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" style="font-size: 12px;">Min. par poule</label>
+                        <input type="number" name="min_poule" class="form-control" min="2" max="10" value="3"
+                               oninput="validatePouleRange(this)">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-size: 12px;">Max. par poule</label>
+                        <input type="number" name="max_poule" class="form-control" min="2" max="16" value="6"
+                               oninput="validatePouleRange(this)">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-size: 12px;">Nombre de tatamis</label>
+                        <input type="number" name="nb_tatamis" class="form-control" min="1" max="20" value="2"
+                               oninput="validateTatamis(this)">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% else %}
+    {# Mode édition simplifié #}
+    <div class="card" style="margin-bottom: 16px;">
+        <div class="card-header"><span class="card-title">Modifier le tournoi</span></div>
+        <div class="card-body">
             <div class="form-group">
                 <label class="form-label">Date du tournoi</label>
                 <input type="date" name="date" class="form-control" required
                        value="{{ tournoi and tournoi.date ? tournoi.date|date('Y-m-d') : '' }}">
             </div>
 
-            {% if mode == 'create' %}
-            <div class="form-group">
-                <label class="form-label">Type de tournoi</label>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px;">
-                    <label style="cursor: pointer;">
-                        <input type="radio" name="equipe" value="0" checked
-                               style="display:none;" id="type-individuel">
-                        <div class="type-card" onclick="selectType(0)" id="card-individuel"
-                             style="padding: 14px; border-radius: 8px; border: 2px solid var(--accent); background: rgba(99,102,241,.1); text-align: center; cursor: pointer;">
-                            <div style="font-size: 22px; margin-bottom: 4px;">🥋</div>
-                            <div style="font-weight: 600; color: var(--blanc); font-size: 14px;">Individuel</div>
-                            <div style="font-size: 11px; color: var(--gris-moyen); margin-top: 2px;">Combats 1 vs 1</div>
-                        </div>
-                    </label>
-                    <label style="cursor: pointer;">
-                        <input type="radio" name="equipe" value="1"
-                               style="display:none;" id="type-equipe">
-                        <div class="type-card" onclick="selectType(1)" id="card-equipe"
-                             style="padding: 14px; border-radius: 8px; border: 2px solid rgba(255,255,255,.1); background: rgba(255,255,255,.03); text-align: center; cursor: pointer;">
-                            <div style="font-size: 22px; margin-bottom: 4px;">👥</div>
-                            <div style="font-weight: 600; color: var(--blanc); font-size: 14px;">Par équipe</div>
-                            <div style="font-size: 11px; color: var(--gris-moyen); margin-top: 2px;">Équipes s'affrontent</div>
-                        </div>
-                    </label>
-                </div>
-            </div>
-            {% endif %}
-
-            <div class="form-group">
-                <label class="form-label">Prix de participation (€)</label>
-                <input type="number" name="prix_participation" class="form-control" step="0.01" min="0"
-                       placeholder="0.00 = gratuit"
-                       value="{{ tournoi and tournoi.prix_participation ? tournoi.prix_participation : '' }}">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">IBAN du club (pour virement)</label>
-                <input type="text" name="iban" class="form-control"
-                       placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX"
-                       value="{{ tournoi and tournoi.iban ? tournoi.iban : '' }}">
-                <div style="font-size: 11px; color: var(--gris-moyen); margin-top: 4px;">
-                    Affiché aux participants pour le paiement par virement.
-                </div>
-            </div>
-
-            {% if mode == 'edit' %}
             <div class="form-group">
                 <label class="form-label">État</label>
                 <select name="etat" class="form-control">
@@ -86,52 +170,25 @@
                     <option value="annule" {{ tournoi.etat == 'annule' ? 'selected' : '' }}>Annulé</option>
                 </select>
             </div>
-            {% endif %}
-
-        </div>
-    </div>
-
-    {# Paramètres (création uniquement) #}
-    {% if mode == 'create' %}
-    <div class="card">
-        <div class="card-header"><span class="card-title">Paramètres</span></div>
-        <div class="card-body">
 
             <div class="form-group">
-                <label class="form-label">Durée d'un combat (minutes)</label>
-                <input type="number" name="temps_combat" class="form-control" step="0.5" min="1" value="5">
+                <label class="form-label">Prix de participation (€)</label>
+                <input type="number" name="prix_participation" class="form-control" step="0.01" min="0"
+                       value="{{ tournoi and tournoi.prix_participation ? tournoi.prix_participation : '' }}">
             </div>
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">Min. participants / poule</label>
-                    <input type="number" name="min_poule" class="form-control" min="2" value="3">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Max. participants / poule</label>
-                    <input type="number" name="max_poule" class="form-control" min="2" value="6">
-                </div>
+            {% if tournoi.iban %}
+            <div class="form-group">
+                <label class="form-label">IBAN du club</label>
+                <input type="text" name="iban" class="form-control"
+                       value="{{ tournoi.iban }}">
             </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">Max. participants</label>
-                    <input type="number" name="max_participants" class="form-control" min="4" value="32">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Nombre de tatamis</label>
-                    <input type="number" name="nb_tatamis" class="form-control" min="1" value="2">
-                    <div style="font-size: 11px; color: var(--gris-moyen); margin-top: 4px;">
-                        Max. matchs simultanés par créneau.
-                    </div>
-                </div>
-            </div>
-
+            {% endif %}
         </div>
     </div>
-    {% endif %}
+{% endif %}
 
-</div>
+
 
 <div style="margin-top: 16px; display: flex; gap: 10px; justify-content: flex-end;">
     <a href="{{ path('app_tournois') }}" class="btn btn-ghost">Annuler</a>
@@ -146,6 +203,9 @@
 
 {% block javascripts %}
 <script>
+// ========================================
+// Sélection du type de tournoi
+// ========================================
 function selectType(val) {
     const cardI = document.getElementById('card-individuel');
     const cardE = document.getElementById('card-equipe');
@@ -166,5 +226,184 @@ function selectType(val) {
         cardI.style.background = 'rgba(255,255,255,.03)';
     }
 }
+
+function updateFromType() {
+    const type = document.querySelector('input[name="equipe"]:checked').value;
+    if (type === '1') selectType(1);
+    else selectType(0);
+}
+
+// ========================================
+// Gestion paramètres avancés
+// ========================================
+function toggleAdvanced() {
+    const section = document.getElementById('advanced-section');
+    const toggle = document.getElementById('advanced-toggle');
+    
+    if (section.style.display === 'none') {
+        section.style.display = 'block';
+        toggle.textContent = '▲';
+    } else {
+        section.style.display = 'none';
+        toggle.textContent = '▼';
+    }
+}
+
+// ========================================
+// Gestion IBAN conditionnel
+// ========================================
+function toggleIban() {
+    const checkbox = document.getElementById('has-iban');
+    const group = document.getElementById('iban-group');
+    const input = group.querySelector('input[name="iban"]');
+    
+    if (checkbox.checked) {
+        group.style.display = 'block';
+        input.focus();
+    } else {
+        group.style.display = 'none';
+        input.value = '';
+    }
+}
+
+// ========================================
+// Validations
+// ========================================
+function validateForm() {
+    const date = document.querySelector('input[name="date"]');
+    const ibanGroup = document.getElementById('iban-group');
+    
+    // Validation date
+    if (!date.value) {
+        showError('date-error', '⚠️ Veuillez sélectionner une date');
+        return false;
+    }
+    
+    const selectedDate = new Date(date.value);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (selectedDate < today) {
+        showError('date-error', '⚠️ La date doit être future');
+        return false;
+    }
+    
+    clearError('date-error');
+    
+    // Validation IBAN si affiché
+    if (ibanGroup && ibanGroup.style.display !== 'none') {
+        const iban = ibanGroup.querySelector('input[name="iban"]').value.trim();
+        if (iban && !validateIbanFormat(iban)) {
+            showError('iban-error', '⚠️ Format IBAN invalide');
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+function validateDate(input) {
+    const errorDiv = document.getElementById('date-error');
+    const selectedDate = new Date(input.value);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (input.value && selectedDate < today) {
+        errorDiv.textContent = '⚠️ La date doit être future';
+        errorDiv.style.display = 'block';
+    } else {
+        errorDiv.style.display = 'none';
+    }
+}
+
+function validatePrice(input) {
+    const value = parseFloat(input.value);
+    if (value < 0) {
+        input.value = 0;
+    }
+}
+
+function validateDuration(input) {
+    const value = parseFloat(input.value);
+    if (value < 1 || value > 30) {
+        input.value = Math.max(1, Math.min(30, value));
+    }
+}
+
+function validateMax(input) {
+    const value = parseInt(input.value);
+    if (value < 4 || value > 256) {
+        input.value = Math.max(4, Math.min(256, value));
+    }
+}
+
+function validatePouleRange(input) {
+    const value = parseInt(input.value);
+    const min = parseInt(document.querySelector('input[name="min_poule"]').value);
+    const max = parseInt(document.querySelector('input[name="max_poule"]').value);
+    
+    if (min > max) {
+        alert('⚠️ Min poule doit être ≤ Max poule');
+        input.value = parseInt(input.dataset.oldValue || input.defaultValue);
+    }
+    input.dataset.oldValue = input.value;
+}
+
+function validateTatamis(input) {
+    const value = parseInt(input.value);
+    if (value < 1 || value > 20) {
+        input.value = Math.max(1, Math.min(20, value));
+    }
+}
+
+function validateIban(input) {
+    const value = input.value.trim();
+    const errorDiv = document.getElementById('iban-error');
+    
+    if (!value) {
+        errorDiv.style.display = 'none';
+        return true;
+    }
+    
+    if (!validateIbanFormat(value)) {
+        errorDiv.textContent = '⚠️ Format IBAN invalide (ex: FR76 XXXX...)';
+        errorDiv.style.display = 'block';
+        return false;
+    }
+    
+    errorDiv.style.display = 'none';
+    return true;
+}
+
+function validateIbanFormat(iban) {
+    // Validation simple: commence par 2 lettres, suivi de nombres, 15-34 caractères total
+    return /^[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}$/.test(iban.replace(/\s/g, ''));
+}
+
+function showError(elementId, message) {
+    const el = document.getElementById(elementId);
+    if (el) {
+        el.textContent = message;
+        el.style.display = 'block';
+    }
+}
+
+function clearError(elementId) {
+    const el = document.getElementById(elementId);
+    if (el) {
+        el.style.display = 'none';
+    }
+}
+
+// Initialisation
+document.addEventListener('DOMContentLoaded', function() {
+    const ibanCheckbox = document.getElementById('has-iban');
+    const ibanGroup = document.getElementById('iban-group');
+    
+    // Si édition et IBAN existe, afficher le groupe
+    if (ibanGroup && ibanGroup.style.display !== 'none') {
+        if (ibanCheckbox) ibanCheckbox.checked = true;
+    }
+});
 </script>
 {% endblock %}

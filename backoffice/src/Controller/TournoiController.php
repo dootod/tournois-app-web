@@ -150,9 +150,20 @@ class TournoiController extends AbstractController
     #[Route('/{id}/supprimer', name: 'app_tournoi_delete', methods: ['POST'])]
     public function delete(int $id): Response
     {
-        $this->api->deleteTournoi($id);
-        $this->addFlash('success', 'Tournoi supprimé.');
-        return $this->redirectToRoute('app_tournois');
+        try {
+            $result = $this->api->deleteTournoi($id);
+            
+            if ($result === null && $this->api->getLastError()) {
+                $this->addFlash('error', 'Erreur: ' . $this->api->getLastError());
+                return $this->redirectToRoute('app_tournoi_show', ['id' => $id]);
+            }
+            
+            $this->addFlash('success', 'Tournoi supprimé avec succès.');
+            return $this->redirectToRoute('app_tournois');
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Erreur lors de la suppression: ' . $e->getMessage());
+            return $this->redirectToRoute('app_tournoi_show', ['id' => $id]);
+        }
     }
 
     // ── Inscriptions individuelles ────────────────────────────────────────────

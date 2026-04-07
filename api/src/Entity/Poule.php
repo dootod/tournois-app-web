@@ -28,7 +28,7 @@ class Poule
     /**
      * @var Collection<int, MatchTour>
      */
-    #[ORM\OneToMany(targetEntity: MatchTour::class, mappedBy: 'poule')]
+    #[ORM\OneToMany(targetEntity: MatchTour::class, mappedBy: 'poule', cascade: ['remove'])]
     private Collection $matchTours;
 
     public function __construct()

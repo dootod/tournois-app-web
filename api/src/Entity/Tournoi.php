@@ -41,7 +41,7 @@ class Tournoi
     /**
      * @var Collection<int, Poule>
      */
-    #[ORM\OneToMany(targetEntity: Poule::class, mappedBy: 'tournoi')]
+    #[ORM\OneToMany(targetEntity: Poule::class, mappedBy: 'tournoi', cascade: ['remove'])]
     #[Groups(['tournoi:read'])]
     private Collection $poules;
 

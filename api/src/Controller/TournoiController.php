@@ -30,160 +30,439 @@ class TournoiController extends AbstractController
     #[Route('', name: 'tournoi_list', methods: ['GET'])]
     public function list(): JsonResponse
     {
-        $tournois = $this->tournoiRepository->findAll();
-        $data = $this->serializer->serialize($tournois, 'json', ['groups' => 'tournoi:read']);
-        return new JsonResponse($data, Response::HTTP_OK, [], true);
+        try {
+            $tournois = $this->tournoiRepository->findAll();
+            $data = $this->serializer->serialize($tournois, 'json', ['groups' => 'tournoi:read']);
+            return new JsonResponse($data, Response::HTTP_OK, [], true);
+        } catch (\Exception $e) {
+            return $this->json([
+                'error' => 'Erreur lors de la récupération des tournois',
+                'message' => 'Une erreur s\'est produite. Veuillez réessayer.'
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     // GET /api/tournois/{id}
     #[Route('/{id}', name: 'tournoi_show', methods: ['GET'])]
     public function show(int $id): JsonResponse
     {
-        $tournoi = $this->tournoiRepository->find($id);
-        if (!$tournoi) {
-            return $this->json(['message' => 'Tournoi non trouvé'], Response::HTTP_NOT_FOUND);
+        try {
+            if ($id <= 0) {
+                return $this->json([
+                    'error' => 'ID invalide',
+                    'message' => 'L\'ID du tournoi doit être un nombre positif'
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            $tournoi = $this->tournoiRepository->find($id);
+            if (!$tournoi) {
+                return $this->json([
+                    'error' => 'Non trouvé',
+                    'message' => 'Le tournoi avec l\'ID ' . $id . ' n\'existe pas'
+                ], Response::HTTP_NOT_FOUND);
+            }
+
+            $data = $this->serializer->serialize($tournoi, 'json', ['groups' => 'tournoi:read']);
+            return new JsonResponse($data, Response::HTTP_OK, [], true);
+        } catch (\Exception $e) {
+            return $this->json([
+                'error' => 'Erreur lors de la récupération',
+                'message' => 'Une erreur s\'est produite. Veuillez réessayer.'
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-        $data = $this->serializer->serialize($tournoi, 'json', ['groups' => 'tournoi:read']);
-        return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
 
     // POST /api/tournois
     #[Route('', name: 'tournoi_create', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-        if (!$data) {
-            return $this->json(['message' => 'Données invalides'], Response::HTTP_BAD_REQUEST);
+        try {
+            $content = $request->getContent();
+            $data = json_decode($content, true);
+
+            if (!is_array($data)) {
+                return $this->json([
+                    'error' => 'JSON invalide',
+                    'message' => 'Les données envoyées ne sont pas au format JSON valide'
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            // Validation des données requises
+            if (empty($data['date'])) {
+                return $this->json([
+                    'error' => 'Champ requis manquant',
+                    'message' => 'La date du tournoi est obligatoire'
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            // Validation de la date
+            try {
+                $date = new \DateTime($data['date']);
+                $today = new \DateTime();
+                if ($date < $today) {
+                    return $this->json([
+                        'error' => 'Date invalide',
+                        'message' => 'La date du tournoi doit être dans le futur'
+                    ], Response::HTTP_BAD_REQUEST);
+                }
+            } catch (\Exception $e) {
+                return $this->json([
+                    'error' => 'Format de date invalide',
+                    'message' => 'Utilisez le format YYYY-MM-DD'
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            // Validation du prix de participation
+            $price = $data['prix_participation'] ?? 0;
+            if (!is_numeric($price) || $price < 0) {
+                return $this->json([
+                    'error' => 'Prix invalide',
+                    'message' => 'Le prix de participation doit être un nombre positif'
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            // Validation IBAN si présent
+            if (!empty($data['iban'])) {
+                if (!$this->validateIban($data['iban'])) {
+                    return $this->json([
+                        'error' => 'IBAN invalide',
+                        'message' => 'L\'IBAN fourni n\'est pas valide'
+                    ], Response::HTTP_BAD_REQUEST);
+                }
+            }
+
+            $tournoi = new Tournoi();
+            $tournoi->setEquipe(isset($data['equipe']) ? (bool) $data['equipe'] : false);
+            $tournoi->setEtat('ouvert');
+            $tournoi->setDate($date);
+            $tournoi->setPrixParticipation($price > 0 ? (string) $price : null);
+            $tournoi->setIban($data['iban'] ?? null);
+
+            // Création des paramètres par défaut
+            if (isset($data['parametre']) || true) {
+                $p = $data['parametre'] ?? [];
+                $parametre = new Parametre();
+                
+                // Validation des paramètres
+                $tempsCombat = $p['temps_combat'] ?? 5;
+                $minPoule = $p['min_poule'] ?? 3;
+                $maxPoule = $p['max_poule'] ?? 6;
+                $maxParticipants = $p['max_participants'] ?? 32;
+                $nbTatamis = $p['nb_tatamis'] ?? 2;
+
+                if ($minPoule > $maxPoule) {
+                    return $this->json([
+                        'error' => 'Paramètres invalides',
+                        'message' => 'Le minimum par poule ne peut pas dépasser le maximum'
+                    ], Response::HTTP_BAD_REQUEST);
+                }
+
+                $parametre->setTempsCombat((string) max(1, $tempsCombat));
+                $parametre->setMinPoule(max(2, $minPoule));
+                $parametre->setMaxParticipants(max(4, $maxParticipants));
+                $parametre->setMaxPoule(max(2, $maxPoule));
+                $parametre->setNbTatamis(max(1, $nbTatamis));
+                $parametre->setTournoi($tournoi);
+                $tournoi->setParametre($parametre);
+                $this->em->persist($parametre);
+            }
+
+            $this->em->persist($tournoi);
+            $this->em->flush();
+
+            $result = $this->serializer->serialize($tournoi, 'json', ['groups' => 'tournoi:read']);
+            return new JsonResponse($result, Response::HTTP_CREATED, [], true);
+        } catch (\Exception $e) {
+            return $this->json([
+                'error' => 'Erreur lors de la création',
+                'message' => 'Une erreur s\'est produite lors de la création du tournoi'
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-
-        $tournoi = new Tournoi();
-        $tournoi->setEquipe(isset($data['equipe']) ? (bool) $data['equipe'] : false);
-        $tournoi->setEtat($data['etat'] ?? 'ouvert');
-        $tournoi->setDate(isset($data['date']) ? new \DateTime($data['date']) : new \DateTime());
-        $tournoi->setPrixParticipation($data['prix_participation'] ?? null);
-        $tournoi->setIban($data['iban'] ?? null);
-
-        if (isset($data['parametre'])) {
-            $p = $data['parametre'];
-            $parametre = new Parametre();
-            $parametre->setTempsCombat($p['temps_combat'] ?? '5.00');
-            $parametre->setMinPoule($p['min_poule'] ?? 3);
-            $parametre->setMaxParticipants($p['max_participants'] ?? 32);
-            $parametre->setMaxPoule($p['max_poule'] ?? 6);
-            $parametre->setNbTatamis($p['nb_tatamis'] ?? 2);
-            $parametre->setTournoi($tournoi);
-            $tournoi->setParametre($parametre);
-            $this->em->persist($parametre);
-        }
-
-        $this->em->persist($tournoi);
-        $this->em->flush();
-
-        $result = $this->serializer->serialize($tournoi, 'json', ['groups' => 'tournoi:read']);
-        return new JsonResponse($result, Response::HTTP_CREATED, [], true);
     }
 
     // PUT /api/tournois/{id}
     #[Route('/{id}', name: 'tournoi_update', methods: ['PUT'])]
     public function update(int $id, Request $request): JsonResponse
     {
-        $tournoi = $this->tournoiRepository->find($id);
-        if (!$tournoi) {
-            return $this->json(['message' => 'Tournoi non trouvé'], Response::HTTP_NOT_FOUND);
+        try {
+            if ($id <= 0) {
+                return $this->json([
+                    'error' => 'ID invalide',
+                    'message' => 'L\'ID du tournoi doit être un nombre positif'
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            $tournoi = $this->tournoiRepository->find($id);
+            if (!$tournoi) {
+                return $this->json([
+                    'error' => 'Non trouvé',
+                    'message' => 'Le tournoi avec l\'ID ' . $id . ' n\'existe pas'
+                ], Response::HTTP_NOT_FOUND);
+            }
+
+            $data = json_decode($request->getContent(), true);
+            if (!is_array($data)) {
+                return $this->json([
+                    'error' => 'JSON invalide',
+                    'message' => 'Les données envoyées ne sont pas au format JSON valide'
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            // Validation et mise à jour de la date
+            if (isset($data['date'])) {
+                try {
+                    $date = new \DateTime($data['date']);
+                    $tournoi->setDate($date);
+                } catch (\Exception $e) {
+                    return $this->json([
+                        'error' => 'Format de date invalide',
+                        'message' => 'Utilisez le format YYYY-MM-DD'
+                    ], Response::HTTP_BAD_REQUEST);
+                }
+            }
+
+            // Validation et mise à jour de l'état
+            if (isset($data['etat'])) {
+                $etatsValides = ['ouvert', 'en_cours', 'termine', 'annule'];
+                if (!in_array($data['etat'], $etatsValides)) {
+                    return $this->json([
+                        'error' => 'État invalide',
+                        'message' => 'États acceptés: ' . implode(', ', $etatsValides)
+                    ], Response::HTTP_BAD_REQUEST);
+                }
+                $tournoi->setEtat($data['etat']);
+            }
+
+            // Validation prix
+            if (array_key_exists('prix_participation', $data)) {
+                $price = $data['prix_participation'];
+                if ($price !== null && (!is_numeric($price) || $price < 0)) {
+                    return $this->json([
+                        'error' => 'Prix invalide',
+                        'message' => 'Le prix doit être un nombre positif ou null'
+                    ], Response::HTTP_BAD_REQUEST);
+                }
+                $tournoi->setPrixParticipation($price > 0 ? (string) $price : null);
+            }
+
+            // Validation IBAN
+            if (array_key_exists('iban', $data)) {
+                if ($data['iban'] !== null && !$this->validateIban($data['iban'])) {
+                    return $this->json([
+                        'error' => 'IBAN invalide',
+                        'message' => 'L\'IBAN fourni n\'est pas valide'
+                    ], Response::HTTP_BAD_REQUEST);
+                }
+                $tournoi->setIban($data['iban']);
+            }
+
+            $this->em->flush();
+
+            $result = $this->serializer->serialize($tournoi, 'json', ['groups' => 'tournoi:read']);
+            return new JsonResponse($result, Response::HTTP_OK, [], true);
+        } catch (\Exception $e) {
+            return $this->json([
+                'error' => 'Erreur lors de la mise à jour',
+                'message' => 'Une erreur s\'est produite lors de la mise à jour du tournoi'
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-
-        $data = json_decode($request->getContent(), true);
-        if (!$data) {
-            return $this->json(['message' => 'Données invalides'], Response::HTTP_BAD_REQUEST);
-        }
-
-        if (isset($data['etat'])) $tournoi->setEtat($data['etat']);
-        if (isset($data['date'])) $tournoi->setDate(new \DateTime($data['date']));
-        if (array_key_exists('prix_participation', $data)) $tournoi->setPrixParticipation($data['prix_participation']);
-        if (array_key_exists('iban', $data)) $tournoi->setIban($data['iban']);
-
-        $this->em->flush();
-
-        $result = $this->serializer->serialize($tournoi, 'json', ['groups' => 'tournoi:read']);
-        return new JsonResponse($result, Response::HTTP_OK, [], true);
     }
 
     // PATCH /api/tournois/{id}/etat
     #[Route('/{id}/etat', name: 'tournoi_etat', methods: ['PATCH'])]
     public function updateEtat(int $id, Request $request): JsonResponse
     {
-        $tournoi = $this->tournoiRepository->find($id);
-        if (!$tournoi) {
-            return $this->json(['message' => 'Tournoi non trouvé'], Response::HTTP_NOT_FOUND);
-        }
+        try {
+            if ($id <= 0) {
+                return $this->json([
+                    'error' => 'ID invalide',
+                    'message' => 'L\'ID du tournoi doit être un nombre positif'
+                ], Response::HTTP_BAD_REQUEST);
+            }
 
-        $data = json_decode($request->getContent(), true);
-        $etatsValides = ['ouvert', 'en_cours', 'termine', 'annule'];
+            $tournoi = $this->tournoiRepository->find($id);
+            if (!$tournoi) {
+                return $this->json([
+                    'error' => 'Non trouvé',
+                    'message' => 'Le tournoi avec l\'ID ' . $id . ' n\'existe pas'
+                ], Response::HTTP_NOT_FOUND);
+            }
 
-        if (!isset($data['etat']) || !in_array($data['etat'], $etatsValides)) {
+            $data = json_decode($request->getContent(), true);
+            if (!is_array($data)) {
+                return $this->json([
+                    'error' => 'JSON invalide',
+                    'message' => 'Les données envoyées ne sont pas au format JSON valide'
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            $etatsValides = ['ouvert', 'en_cours', 'termine', 'annule'];
+
+            if (empty($data['etat'])) {
+                return $this->json([
+                    'error' => 'Champ manquant',
+                    'message' => 'Le champ "etat" est obligatoire'
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            if (!in_array($data['etat'], $etatsValides)) {
+                return $this->json([
+                    'error' => 'État invalide',
+                    'message' => 'États acceptés: ' . implode(', ', $etatsValides)
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            $tournoi->setEtat($data['etat']);
+            $this->em->flush();
+
             return $this->json([
-                'message' => 'État invalide. Valeurs acceptées : ' . implode(', ', $etatsValides)
-            ], Response::HTTP_BAD_REQUEST);
+                'success' => true,
+                'message' => 'État mis à jour avec succès',
+                'etat' => $tournoi->getEtat()
+            ]);
+        } catch (\Exception $e) {
+            return $this->json([
+                'error' => 'Erreur lors de la mise à jour',
+                'message' => 'Une erreur s\'est produite'
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-
-        $tournoi->setEtat($data['etat']);
-        $this->em->flush();
-
-        return $this->json(['message' => 'État mis à jour', 'etat' => $tournoi->getEtat()]);
     }
 
     // DELETE /api/tournois/{id}
     #[Route('/{id}', name: 'tournoi_delete', methods: ['DELETE'])]
     public function delete(int $id): JsonResponse
     {
-        $tournoi = $this->tournoiRepository->find($id);
-        if (!$tournoi) {
-            return $this->json(['message' => 'Tournoi non trouvé'], Response::HTTP_NOT_FOUND);
+        try {
+            if ($id <= 0) {
+                return $this->json([
+                    'error' => 'ID invalide',
+                    'message' => 'L\'ID du tournoi doit être un nombre positif'
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            $tournoi = $this->tournoiRepository->find($id);
+            if (!$tournoi) {
+                return $this->json([
+                    'error' => 'Non trouvé',
+                    'message' => 'Le tournoi avec l\'ID ' . $id . ' n\'existe pas'
+                ], Response::HTTP_NOT_FOUND);
+            }
+
+            $this->em->remove($tournoi);
+            $this->em->flush();
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Tournoi supprimé avec succès'
+            ]);
+        } catch (\Exception $e) {
+            return $this->json([
+                'error' => 'Erreur lors de la suppression',
+                'message' => 'Une erreur s\'est produite lors de la suppression du tournoi'
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-
-        $this->em->remove($tournoi);
-        $this->em->flush();
-
-        return $this->json(['message' => 'Tournoi supprimé'], Response::HTTP_OK);
     }
 
     // GET /api/tournois/{id}/participants
     #[Route('/{id}/participants', name: 'tournoi_participants', methods: ['GET'])]
     public function participants(int $id): JsonResponse
     {
-        $tournoi = $this->tournoiRepository->find($id);
-        if (!$tournoi) {
-            return $this->json(['message' => 'Tournoi non trouvé'], Response::HTTP_NOT_FOUND);
-        }
+        try {
+            if ($id <= 0) {
+                return $this->json(['error' => 'ID invalide'], Response::HTTP_BAD_REQUEST);
+            }
 
-        $data = $this->serializer->serialize($tournoi->getParticipants(), 'json', ['groups' => 'participant:read']);
-        return new JsonResponse($data, Response::HTTP_OK, [], true);
+            $tournoi = $this->tournoiRepository->find($id);
+            if (!$tournoi) {
+                return $this->json([
+                    'error' => 'Tournoi non trouvé',
+                    'message' => 'Le tournoi avec l\'ID ' . $id . ' n\'existe pas'
+                ], Response::HTTP_NOT_FOUND);
+            }
+
+            $data = $this->serializer->serialize($tournoi->getParticipants(), 'json', ['groups' => 'participant:read']);
+            return new JsonResponse($data, Response::HTTP_OK, [], true);
+        } catch (\Exception $e) {
+            return $this->json(['error' => 'Erreur lors de la récupération'], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     // GET /api/tournois/{id}/poules
     #[Route('/{id}/poules', name: 'tournoi_poules', methods: ['GET'])]
     public function poules(int $id): JsonResponse
     {
-        $tournoi = $this->tournoiRepository->find($id);
-        if (!$tournoi) {
-            return $this->json(['message' => 'Tournoi non trouvé'], Response::HTTP_NOT_FOUND);
-        }
+        try {
+            if ($id <= 0) {
+                return $this->json(['error' => 'ID invalide'], Response::HTTP_BAD_REQUEST);
+            }
 
-        $data = $this->serializer->serialize($tournoi->getPoules(), 'json', ['groups' => 'poule:read']);
-        return new JsonResponse($data, Response::HTTP_OK, [], true);
+            $tournoi = $this->tournoiRepository->find($id);
+            if (!$tournoi) {
+                return $this->json([
+                    'error' => 'Tournoi non trouvé',
+                    'message' => 'Le tournoi avec l\'ID ' . $id . ' n\'existe pas'
+                ], Response::HTTP_NOT_FOUND);
+            }
+
+            $data = $this->serializer->serialize($tournoi->getPoules(), 'json', ['groups' => 'poule:read']);
+            return new JsonResponse($data, Response::HTTP_OK, [], true);
+        } catch (\Exception $e) {
+            return $this->json(['error' => 'Erreur lors de la récupération'], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     // GET /api/tournois/{id}/equipes
     #[Route('/{id}/equipes', name: 'tournoi_equipes', methods: ['GET'])]
     public function equipes(int $id): JsonResponse
     {
-        $tournoi = $this->tournoiRepository->find($id);
-        if (!$tournoi) {
-            return $this->json(['message' => 'Tournoi non trouvé'], Response::HTTP_NOT_FOUND);
-        }
+        try {
+            if ($id <= 0) {
+                return $this->json(['error' => 'ID invalide'], Response::HTTP_BAD_REQUEST);
+            }
 
-        $data = $this->serializer->serialize($tournoi->getEquipes(), 'json', ['groups' => 'equipe:read']);
-        return new JsonResponse($data, Response::HTTP_OK, [], true);
+            $tournoi = $this->tournoiRepository->find($id);
+            if (!$tournoi) {
+                return $this->json([
+                    'error' => 'Tournoi non trouvé',
+                    'message' => 'Le tournoi avec l\'ID ' . $id . ' n\'existe pas'
+                ], Response::HTTP_NOT_FOUND);
+            }
+
+            $data = $this->serializer->serialize($tournoi->getEquipes(), 'json', ['groups' => 'equipe:read']);
+            return new JsonResponse($data, Response::HTTP_OK, [], true);
+        } catch (\Exception $e) {
+            return $this->json(['error' => 'Erreur lors de la récupération'], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Valide un numéro IBAN
+     */
+    private function validateIban(string $iban): bool
+    {
+        // Supprimer les espaces
+        $iban = str_replace(' ', '', $iban);
+        
+        // Vérifier le format général: 2 lettres + 2 chiffres + max 30 alphanumérique
+        if (!preg_match('/^[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}$/', $iban)) {
+            return false;
+        }
+        
+        // Vérification du checksum IBAN (optionnel mais recommandé)
+        $iban = strtoupper($iban);
+        $rearranged = substr($iban, 4) . substr($iban, 0, 4);
+        $numeric = '';
+        
+        foreach (str_split($rearranged) as $char) {
+            if (is_numeric($char)) {
+                $numeric .= $char;
+            } else {
+                $numeric .= (ord($char) - ord('A') + 10);
+            }
+        }
+        
+        // IBAN valide si mod 97 = 1
+        return bcmod($numeric, '97') === '1';
     }
 
     // GET /api/tournois/{id}/show — Tout en 1 seul appel (optimisé)

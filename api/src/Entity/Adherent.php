@@ -42,6 +42,10 @@ class Adherent
     #[Groups(['adherent:read', 'participant:read', 'matchtour:read', 'equipe:read'])]
     private ?string $poids = null;
 
+    #[ORM\Column(length: 20, nullable: true)]
+    #[Groups(['adherent:read', 'participant:read', 'matchtour:read', 'equipe:read'])]
+    private ?string $genre = null;
+
     /**
      * @var Collection<int, Participant>
      */
@@ -72,6 +76,9 @@ class Adherent
 
     public function getPoids(): ?string { return $this->poids; }
     public function setPoids(?string $poids): static { $this->poids = $poids; return $this; }
+
+    public function getGenre(): ?string { return $this->genre; }
+    public function setGenre(?string $genre): static { $this->genre = $genre; return $this; }
 
     public function getParticipants(): Collection { return $this->participants; }
 
