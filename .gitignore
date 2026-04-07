@@ -2,6 +2,8 @@
 .env
 .env.local
 .env.*.local
+!api/.env
+!backoffice/.env
 /public/bundles/
 /var/
 /vendor/
