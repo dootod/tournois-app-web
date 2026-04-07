@@ -3,7 +3,8 @@
     "allow": [
       "Bash(xargs grep:*)",
       "Bash(wc -l /c/laragon/www/tournois-app-web/api/src/Entity/*.php /c/laragon/www/tournois-app-web/api/src/Controller/*.php)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(grep -v \"^$\")"
     ]
   }
 }
