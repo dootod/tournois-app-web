@@ -2,7 +2,7 @@ package com.example.mobile;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Button;
+import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -14,6 +14,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        if (getSupportActionBar() != null) getSupportActionBar().hide();
 
         ApiClient.init(this);
         if (!ApiClient.isLogged()) {
@@ -22,15 +23,15 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        ((Button) findViewById(R.id.btnTournois)).setOnClickListener(
+        findViewById(R.id.btnTournois).setOnClickListener(
             v -> startActivity(new Intent(this, TournoisActivity.class)));
-        ((Button) findViewById(R.id.btnMesTournois)).setOnClickListener(
+        findViewById(R.id.btnMesTournois).setOnClickListener(
             v -> startActivity(new Intent(this, MesTournoisActivity.class)));
-        ((Button) findViewById(R.id.btnProfile)).setOnClickListener(
+        findViewById(R.id.btnProfile).setOnClickListener(
             v -> startActivity(new Intent(this, ProfileActivity.class)));
-        ((Button) findViewById(R.id.btnScores)).setOnClickListener(
+        findViewById(R.id.btnScores).setOnClickListener(
             v -> startActivity(new Intent(this, ScoresActivity.class)));
-        ((Button) findViewById(R.id.btnLogout)).setOnClickListener(v -> {
+        findViewById(R.id.btnLogout).setOnClickListener(v -> {
             ApiClient.clear(this);
             startActivity(new Intent(this, LoginActivity.class));
             finish();

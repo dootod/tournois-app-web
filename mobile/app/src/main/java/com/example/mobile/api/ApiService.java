@@ -1,6 +1,8 @@
 package com.example.mobile.api;
 
 import com.example.mobile.model.Adherent;
+import com.example.mobile.model.Equipe;
+import com.example.mobile.model.Match;
 import com.example.mobile.model.LoginRequest;
 import com.example.mobile.model.LoginResponse;
 import com.example.mobile.model.MeResponse;
@@ -8,6 +10,7 @@ import com.example.mobile.model.Score;
 import com.example.mobile.model.Tournoi;
 
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -31,7 +34,13 @@ public interface ApiService {
     Call<List<Tournoi>> getMesTournois();
 
     @POST("me/tournois/{id}/inscription")
-    Call<Void> inscrire(@Path("id") int tournoiId);
+    Call<Void> inscrire(@Path("id") int tournoiId, @Body Map<String, Object> body);
+
+    @GET("me/tournois/{id}/equipes")
+    Call<List<Equipe>> getTournoiEquipes(@Path("id") int tournoiId);
+
+    @GET("me/tournois/{id}/matchs")
+    Call<List<Match>> getMesMatchs(@Path("id") int tournoiId);
 
     @DELETE("me/tournois/{id}/inscription")
     Call<Void> desinscrire(@Path("id") int tournoiId);

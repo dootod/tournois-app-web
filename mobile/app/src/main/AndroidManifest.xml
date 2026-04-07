@@ -16,17 +16,19 @@
         android:theme="@style/Theme.Mobile">
         <activity
             android:name=".LoginActivity"
+            android:theme="@style/Theme.Mobile.NoActionBar"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".MainActivity" android:exported="false" />
+        <activity android:name=".MainActivity" android:theme="@style/Theme.Mobile.NoActionBar" android:exported="false" />
         <activity android:name=".TournoisActivity" android:exported="false" />
         <activity android:name=".MesTournoisActivity" android:exported="false" />
         <activity android:name=".ProfileActivity" android:exported="false" />
         <activity android:name=".ScoresActivity" android:exported="false" />
+        <activity android:name=".MatchsActivity" android:exported="false" />
     </application>
 
 </manifest>

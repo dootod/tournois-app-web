@@ -5,5 +5,9 @@ public class Score {
     public int score;
     public boolean gagnant;
     public boolean disqualification;
-    public int participant_id;
+    public String adversaire;
+    public String phase;
+    public String round;
+    public String date;
+    public String equipe;
 }

@@ -9,7 +9,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ApiClient {
-    // 10.0.2.2 = localhost for Android emulator
+    // 10.0.2.2 = localhost pour émulateur Android
     public static final String BASE_URL = "http://10.0.2.2/tournois-app-web/api/public/api/";
     private static final String PREFS = "tournois_prefs";
     private static final String KEY_TOKEN = "api_token";

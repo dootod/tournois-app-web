@@ -2,7 +2,6 @@ package com.example.mobile;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -22,6 +21,7 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        if (getSupportActionBar() != null) getSupportActionBar().hide();
 
         ApiClient.init(this);
         if (ApiClient.isLogged()) {
@@ -32,7 +32,7 @@ public class LoginActivity extends AppCompatActivity {
 
         EditText email = findViewById(R.id.email);
         EditText password = findViewById(R.id.password);
-        Button btn = findViewById(R.id.loginBtn);
+        TextView btn = findViewById(R.id.loginBtn);
         TextView error = findViewById(R.id.errorText);
 
         btn.setOnClickListener(v -> {

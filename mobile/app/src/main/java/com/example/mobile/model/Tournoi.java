@@ -6,4 +6,6 @@ public class Tournoi {
     public String date;
     public String etat;
     public String prix_participation;
+    public Equipe mon_equipe;
+    public Boolean paye;
 }

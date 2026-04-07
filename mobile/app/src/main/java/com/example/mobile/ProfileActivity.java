@@ -1,7 +1,6 @@
 package com.example.mobile;
 
 import android.os.Bundle;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -18,7 +17,7 @@ public class ProfileActivity extends BaseActivity {
 
     private EditText nom, prenom, dateNaissance, ceinture, poids, genre;
     private TextView errorText;
-    private Button saveBtn;
+    private TextView saveBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

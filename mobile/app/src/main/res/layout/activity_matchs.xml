@@ -18,7 +18,7 @@
     <TextView android:id="@+id/emptyText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Aucun score enregistré pour le moment"
+        android:text="Aucun match programmé pour l'instant"
         android:gravity="center"
         android:padding="32dp"
         android:textColor="@color/muted"

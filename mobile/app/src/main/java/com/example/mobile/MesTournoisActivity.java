@@ -1,10 +1,10 @@
 package com.example.mobile;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 
 import com.example.mobile.api.ApiClient;
 import com.example.mobile.model.Tournoi;
+import com.example.mobile.util.Fmt;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +34,10 @@ public class MesTournoisActivity extends BaseActivity {
         setTitle("Mes inscriptions");
 
         ListView list = findViewById(R.id.list);
+        TextView emptyText = findViewById(R.id.emptyText);
+        emptyText.setText("Vous n'êtes inscrit à aucun tournoi");
+        list.setEmptyView(emptyText);
+
         adapter = new ArrayAdapter<Tournoi>(this, 0, data) {
             @NonNull
             @Override
@@ -41,12 +46,33 @@ public class MesTournoisActivity extends BaseActivity {
                     convertView = getLayoutInflater().inflate(R.layout.item_tournoi, parent, false);
                 }
                 Tournoi t = data.get(position);
-                ((TextView) convertView.findViewById(R.id.title)).setText("Tournoi #" + t.id + " — " + t.date);
-                ((TextView) convertView.findViewById(R.id.subtitle)).setText(
-                    t.etat + (t.equipe ? " · équipe" : " · individuel"));
-                Button btn = convertView.findViewById(R.id.btnAction);
+                ((TextView) convertView.findViewById(R.id.title)).setText(Fmt.dateFr(t.date));
+
+                StringBuilder sub = new StringBuilder();
+                sub.append(t.equipe ? "Par équipe" : "Individuel");
+                if (t.mon_equipe != null && t.mon_equipe.nom != null) {
+                    sub.append(" · Équipe ").append(t.mon_equipe.nom);
+                }
+                if (t.paye != null) {
+                    sub.append(t.paye ? " · Payé" : " · Non payé");
+                }
+                ((TextView) convertView.findViewById(R.id.subtitle)).setText(sub.toString());
+                ((TextView) convertView.findViewById(R.id.chip)).setText(Fmt.etat(t.etat));
+
+                TextView btnSec = convertView.findViewById(R.id.btnSecondary);
+                btnSec.setVisibility(View.VISIBLE);
+                btnSec.setText("Mes matchs");
+                btnSec.setOnClickListener(v -> {
+                    Intent i = new Intent(MesTournoisActivity.this, MatchsActivity.class);
+                    i.putExtra("tournoi_id", t.id);
+                    i.putExtra("tournoi_date", t.date);
+                    i.putExtra("mon_equipe", t.mon_equipe != null ? t.mon_equipe.nom : null);
+                    startActivity(i);
+                });
+
+                TextView btn = convertView.findViewById(R.id.btnAction);
                 btn.setText("Se désinscrire");
-                btn.setEnabled("ouvert".equals(t.etat));
+                btn.setEnabled(true);
                 btn.setOnClickListener(v -> desinscrire(t));
                 return convertView;
             }
@@ -62,9 +88,6 @@ public class MesTournoisActivity extends BaseActivity {
                     data.clear();
                     data.addAll(r.body());
                     adapter.notifyDataSetChanged();
-                    if (data.isEmpty()) {
-                        Toast.makeText(MesTournoisActivity.this, "Aucune inscription", Toast.LENGTH_SHORT).show();
-                    }
                 } else {
                     Toast.makeText(MesTournoisActivity.this, "Erreur " + r.code(), Toast.LENGTH_SHORT).show();
                 }
@@ -73,6 +96,12 @@ public class MesTournoisActivity extends BaseActivity {
                 Toast.makeText(MesTournoisActivity.this, "Réseau: " + t.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (adapter != null) load();
     }
 
     private void desinscrire(Tournoi t) {
