@@ -62,17 +62,7 @@ Le projet contient trois dossiers :
 
 ---
 
-## 3. Base de données MySQL
-
-1. Ouvrir **HeidiSQL** (fourni avec Laragon) ou phpMyAdmin.
-2. Se connecter avec l'utilisateur `root` (sans mot de passe par défaut).
-3. Créer une base **`tournois`** en `utf8mb4_unicode_ci`.
-
-> La même base est utilisée par l'API et le backoffice.
-
----
-
-## 4. Installer l'API
+## 3. Installer l'API
 
 ```bash
 cd C:\laragon\www\tournois-app-web\api
@@ -88,11 +78,19 @@ DATABASE_URL="mysql://root@127.0.0.1:3306/tournois?serverVersion=8.0.32&charset=
 CORS_ALLOW_ORIGIN='^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$'
 ```
 
-Exécuter les migrations :
+---
+
+## 4. Créer la base de données
+
+On utilise **phpMyAdmin** (accessible depuis le menu Laragon → *Database* → *phpMyAdmin*, ou sur `http://localhost/phpmyadmin`) pour consulter/administrer la base, mais la création et les migrations se font via Doctrine en ligne de commande :
 
 ```bash
+cd C:\laragon\www\tournois-app-web\api
+php bin/console doctrine:database:create
 php bin/console doctrine:migrations:migrate
 ```
+
+La base `tournois` est maintenant créée et visible dans phpMyAdmin. Elle est utilisée à la fois par l'API et le backoffice.
 
 (Optionnel) Charger des données de test :
 
