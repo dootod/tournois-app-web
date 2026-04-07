@@ -1,0 +1,27 @@
+Tu va comprendre le projet API, backoffice et app mobile, une fois que tu as la connaissance de l'app
+tu vas pouvoir commencer a faire toutes les modifications ci-dessous.
+
+Backoffice
+- Voir pour enlever le syteme de min et max par poule
+- Je capte pas la notion de poule faut faire en sorte que sa soit plus structurer
+- Enlever le nombre de match du dashboard
+- Je capte pas l'intéret du bouton renouveler sa sert a quoi ?
+- Modififier le backoffice pour que seulement les admin puisses se connecter dessus
+- Fais un fixture pour que un compte admin soit deja creer (email : admin@gmail.com, mdp : admin)
+- Faudra que tu rajoute un crud pour la gestion des compte sur le backoffice
+
+BDD et entité :
+- Je veux que integre les comptes dans la BDD et entité, on en aura besoin pour l'application mobile
+- Pour les compte on a soit comme role user ou admin
+- Le compte des adhérents doit etre relier aux utilisateur pour qu'il puisse utiliser l'app mobile 
+mais je ne sais pas du tout comment cela doit etre gérer
+
+App mobile (andoid studio java) : 
+- Sur l'app mobile les adherents utilisateurs doivent pouvoir s'inscrire au tournois d'eux meme
+- Modifier sa fiche adhérent
+- Voir ses scores
+- Et avoir toute les informations nécéssaire en cohérence avec le backoffice
+
+Tu fera toute les modifications nécéssaire sur le backoffice, api, entité, tu fais toute les modifications
+nécéssaires pour que l'api et backoffice et app mobile soit parafaitement connecté.
+Tu fera aussi tous les test pour vérifier le fonctionnement
