@@ -27,12 +27,15 @@ class TournoiController extends AbstractController
     public function new(Request $request): Response
     {
         if ($request->isMethod('POST')) {
+            $prixParticipation = $request->request->get('prix_participation');
+            $iban = $request->request->get('iban');
+            
             $data = [
                 'equipe'             => $request->request->get('equipe') === '1',
                 'date'               => $request->request->get('date'),
                 'etat'               => 'ouvert',
-                'prix_participation' => $request->request->get('prix_participation') ?: null,
-                'iban'               => $request->request->get('iban') ?: null,
+                'prix_participation' => $prixParticipation !== '' && $prixParticipation !== null ? (float)$prixParticipation : null,
+                'iban'               => $iban !== '' && $iban !== null ? trim($iban) : null,
                 'parametre' => [
                     'temps_combat'     => $request->request->get('temps_combat', '5.00'),
                     'min_poule'        => (int) $request->request->get('min_poule', 3),
@@ -121,11 +124,14 @@ class TournoiController extends AbstractController
         if (!$tournoi) return $this->redirectToRoute('app_tournois');
 
         if ($request->isMethod('POST')) {
+            $prixParticipation = $request->request->get('prix_participation');
+            $iban = $request->request->get('iban');
+            
             $data = [
                 'date'               => $request->request->get('date'),
                 'etat'               => $request->request->get('etat'),
-                'prix_participation' => $request->request->get('prix_participation') ?: null,
-                'iban'               => $request->request->get('iban') ?: null,
+                'prix_participation' => $prixParticipation !== '' && $prixParticipation !== null ? (float)$prixParticipation : null,
+                'iban'               => $iban !== '' && $iban !== null ? trim($iban) : null,
             ];
 
             $result = $this->api->updateTournoi($id, $data);
@@ -277,15 +283,43 @@ class TournoiController extends AbstractController
     public function addMatch(int $id, Request $request): Response
     {
         $pouleId    = (int) $request->request->get('poule_id');
+        $tatami     = $request->request->get('tatami');
+        $heureDebut = $request->request->get('heure_debut');
+        $heureFin   = $request->request->get('heure_fin');
+
+        // Vérifier que les deux équipes/combattants sont différents
+        $e1 = $request->request->get('equipe1_id');
+        $e2 = $request->request->get('equipe2_id');
+        $p1 = $request->request->get('participant1_id');
+        $p2 = $request->request->get('participant2_id');
+        
+        if ($e1 && $e2 && $e1 === $e2) {
+            $this->addFlash('error', '❌ Les deux équipes doivent être différentes.');
+            return $this->redirectToRoute('app_tournoi_show', ['id' => $id]);
+        }
+        if ($p1 && $p2 && $p1 === $p2) {
+            $this->addFlash('error', '❌ Les deux combattants doivent être différents.');
+            return $this->redirectToRoute('app_tournoi_show', ['id' => $id]);
+        }
+
+        // Vérifier les conflits de tatami si les paramètres sont fournis
+        if ($tatami && $heureDebut && $heureFin) {
+            $conflict = $this->api->checkTatamiConflict($id, (int)$tatami, $heureDebut, $heureFin);
+            if ($conflict && isset($conflict['conflict']) && $conflict['conflict']) {
+                $this->addFlash('error', '❌ Ce tatami est déjà utilisé à cette heure-là. Choisis un autre horaire ou un autre tatami.');
+                return $this->redirectToRoute('app_tournoi_show', ['id' => $id]);
+            }
+        }
+
         $payload    = ['poule_id' => $pouleId, 'phase' => 'qualification'];
 
-        if ($p1 = $request->request->get('participant1_id')) $payload['participant1_id'] = (int)$p1;
-        if ($p2 = $request->request->get('participant2_id')) $payload['participant2_id'] = (int)$p2;
-        if ($e1 = $request->request->get('equipe1_id')) $payload['equipe1_id'] = (int)$e1;
-        if ($e2 = $request->request->get('equipe2_id')) $payload['equipe2_id'] = (int)$e2;
-        if ($t  = $request->request->get('tatami'))    $payload['tatami'] = (int)$t;
-        if ($hd = $request->request->get('heure_debut')) $payload['heure_debut'] = $hd;
-        if ($hf = $request->request->get('heure_fin'))   $payload['heure_fin']   = $hf;
+        if ($p1) $payload['participant1_id'] = (int)$p1;
+        if ($p2) $payload['participant2_id'] = (int)$p2;
+        if ($e1) $payload['equipe1_id'] = (int)$e1;
+        if ($e2) $payload['equipe2_id'] = (int)$e2;
+        if ($tatami)  $payload['tatami'] = (int)$tatami;
+        if ($heureDebut) $payload['heure_debut'] = $heureDebut;
+        if ($heureFin)   $payload['heure_fin']   = $heureFin;
 
         $result = $this->api->createMatch($payload);
 
@@ -302,20 +336,48 @@ class TournoiController extends AbstractController
     #[Route('/{id}/match/finale/ajouter', name: 'app_tournoi_match_finale_add', methods: ['POST'])]
     public function addMatchFinale(int $id, Request $request): Response
     {
-        $pouleId = (int) $request->request->get('poule_id');
+        $pouleId    = (int) $request->request->get('poule_id');
+        $tatami     = $request->request->get('tatami');
+        $heureDebut = $request->request->get('heure_debut');
+        $heureFin   = $request->request->get('heure_fin');
+
+        // Vérifier que les deux équipes/combattants sont différents
+        $e1 = $request->request->get('equipe1_id');
+        $e2 = $request->request->get('equipe2_id');
+        $p1 = $request->request->get('participant1_id');
+        $p2 = $request->request->get('participant2_id');
+        
+        if ($e1 && $e2 && $e1 === $e2) {
+            $this->addFlash('error', '❌ Les deux équipes doivent être différentes.');
+            return $this->redirectToRoute('app_tournoi_show', ['id' => $id]);
+        }
+        if ($p1 && $p2 && $p1 === $p2) {
+            $this->addFlash('error', '❌ Les deux combattants doivent être différents.');
+            return $this->redirectToRoute('app_tournoi_show', ['id' => $id]);
+        }
+
+        // Vérifier les conflits de tatami si les paramètres sont fournis
+        if ($tatami && $heureDebut && $heureFin) {
+            $conflict = $this->api->checkTatamiConflict($id, (int)$tatami, $heureDebut, $heureFin);
+            if ($conflict && isset($conflict['conflict']) && $conflict['conflict']) {
+                $this->addFlash('error', '❌ Ce tatami est déjà utilisé à cette heure-là. Choisis un autre horaire ou un autre tatami.');
+                return $this->redirectToRoute('app_tournoi_show', ['id' => $id]);
+            }
+        }
+
         $payload = [
             'poule_id' => $pouleId,
             'phase'    => 'elimination',
             'round'    => $request->request->get('round'),
         ];
 
-        if ($p1 = $request->request->get('participant1_id')) $payload['participant1_id'] = (int)$p1;
-        if ($p2 = $request->request->get('participant2_id')) $payload['participant2_id'] = (int)$p2;
-        if ($e1 = $request->request->get('equipe1_id')) $payload['equipe1_id'] = (int)$e1;
-        if ($e2 = $request->request->get('equipe2_id')) $payload['equipe2_id'] = (int)$e2;
-        if ($t  = $request->request->get('tatami'))    $payload['tatami'] = (int)$t;
-        if ($hd = $request->request->get('heure_debut')) $payload['heure_debut'] = $hd;
-        if ($hf = $request->request->get('heure_fin'))   $payload['heure_fin']   = $hf;
+        if ($p1) $payload['participant1_id'] = (int)$p1;
+        if ($p2) $payload['participant2_id'] = (int)$p2;
+        if ($e1) $payload['equipe1_id'] = (int)$e1;
+        if ($e2) $payload['equipe2_id'] = (int)$e2;
+        if ($tatami)  $payload['tatami'] = (int)$tatami;
+        if ($heureDebut) $payload['heure_debut'] = $heureDebut;
+        if ($heureFin)   $payload['heure_fin']   = $heureFin;
 
         $result = $this->api->createMatch($payload);
 
@@ -332,10 +394,23 @@ class TournoiController extends AbstractController
     #[Route('/{id}/match/{matchId}/planifier', name: 'app_tournoi_match_planifier', methods: ['POST'])]
     public function planifierMatch(int $id, int $matchId, Request $request): Response
     {
+        $tatami = $request->request->get('tatami');
+        $heureDebut = $request->request->get('heure_debut');
+        $heureFin = $request->request->get('heure_fin');
+
+        // Vérifier les conflits de tatami si les paramètres sont fournis
+        if ($tatami && $heureDebut && $heureFin) {
+            $conflict = $this->api->checkTatamiConflict($id, (int)$tatami, $heureDebut, $heureFin, $matchId);
+            if ($conflict && isset($conflict['conflict']) && $conflict['conflict']) {
+                $this->addFlash('error', '❌ Ce tatami est déjà utilisé à cette heure-là. Choisis un autre horaire ou un autre tatami.');
+                return $this->redirectToRoute('app_tournoi_show', ['id' => $id]);
+            }
+        }
+
         $result = $this->api->updateMatch($matchId, [
-            'tatami'      => (int) $request->request->get('tatami'),
-            'heure_debut' => $request->request->get('heure_debut'),
-            'heure_fin'   => $request->request->get('heure_fin'),
+            'tatami'      => $tatami ? (int)$tatami : null,
+            'heure_debut' => $heureDebut,
+            'heure_fin'   => $heureFin,
         ]);
 
         if ($result !== null) {

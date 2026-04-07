@@ -1,0 +1,200 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   BRACKET VIEW - AFFICHAGE VISUEL DE LA PHASE D'ÉLIMINATION
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.bracket-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+.bracket-round {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.bracket-round-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 8px;
+}
+
+.bracket-match {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.bracket-match-info {
+  padding: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 11px;
+  color: var(--gris-moyen);
+}
+
+.bracket-combattant {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  transition: background 0.2s ease;
+}
+
+.bracket-combattant:last-child {
+  border-bottom: none;
+}
+
+.bracket-combattant:hover {
+  background: rgba(var(--accent-rgb), 0.1);
+}
+
+.bracket-combattant.winner {
+  background: rgba(34, 197, 94, 0.1);
+  color: #4ade80;
+  font-weight: 500;
+}
+
+.comba-name {
+  flex: 1;
+}
+
+.comba-score {
+  font-weight: 600;
+  min-width: 30px;
+  text-align: right;
+  color: var(--blanc);
+}
+
+/* ── Vue compacte des matchs ────────────────────────────────────────────── */
+
+.matches-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  padding: 16px 0;
+}
+
+.match-card {
+  background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.05), rgba(var(--accent-rgb), 0.02));
+  border: 1px solid rgba(var(--accent-rgb), 0.2);
+  border-radius: 8px;
+  padding: 12px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.match-card:hover {
+  background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.1), rgba(var(--accent-rgb), 0.05));
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.match-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 11px;
+  color: var(--gris-moyen);
+}
+
+.match-card-badge {
+  background: rgba(var(--accent-rgb), 0.2);
+  color: var(--accent);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.match-card-combattants {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.match-card-combattant {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+}
+
+.match-card-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.match-card-score {
+  font-weight: 600;
+  min-width: 25px;
+  text-align: right;
+  color: var(--accent);
+}
+
+/* ── État du match ──────────────────────────────────────────────────────── */
+
+.match-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--gris-moyen);
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gris-moyen);
+}
+
+.status-indicator.planned {
+  background: var(--accent);
+  animation: pulse 2s infinite;
+}
+
+.status-indicator.completed {
+  background: #4ade80;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .bracket-container {
+    grid-template-columns: 1fr;
+  }
+
+  .matches-summary {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,386 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   MATCH CREATION MODAL - MODERN UI
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.match-creator-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.match-creator-modal.modal-open {
+  display: flex;
+}
+
+.modal-content {
+  background: var(--blanc);
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  padding: 24px;
+  border-bottom: 1px solid var(--gris-tres-clair);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--noir);
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--gris-moyen);
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.modal-close-btn:hover {
+  background: var(--gris-tres-clair);
+  color: var(--noir);
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.modal-section {
+  margin-bottom: 28px;
+}
+
+.modal-section:last-child {
+  margin-bottom: 0;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gris-moyen);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+/* ── Sélection de phase ──────────────────────────────────────────────────── */
+
+.phase-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.phase-tab {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid var(--gris-tres-clair);
+  background: var(--blanc);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  color: var(--gris-moyen);
+}
+
+.phase-tab:hover {
+  border-color: var(--bleu);
+  color: var(--bleu);
+}
+
+.phase-tab.active {
+  background: var(--bleu);
+  color: var(--blanc);
+  border-color: var(--bleu);
+}
+
+/* ── Sélection de poule ──────────────────────────────────────────────────── */
+
+.poule-selector {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.poule-option {
+  padding: 12px 16px;
+  border: 2px solid var(--gris-tres-clair);
+  background: var(--blanc);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  font-size: 13px;
+}
+
+.poule-option:hover {
+  border-color: var(--bleu);
+  background: rgba(var(--bleu-rgb), 0.05);
+}
+
+.poule-option.selected {
+  background: var(--bleu);
+  color: var(--blanc);
+  border-color: var(--bleu);
+}
+
+/* ── Sélection des combattants/équipes ──────────────────────────────────── */
+
+.combattants-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.combattants-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.column-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gris-moyen);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.combattants-list,
+.equipes-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.combattant-card,
+.equipe-card {
+  padding: 12px 14px;
+  border: 2px solid var(--gris-tres-clair);
+  background: var(--blanc);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.combattant-card:hover,
+.equipe-card:hover {
+  border-color: var(--bleu);
+  background: rgba(var(--bleu-rgb), 0.05);
+}
+
+.combattant-card.selected,
+.equipe-card.selected {
+  background: var(--bleu);
+  color: var(--blanc);
+  border-color: var(--bleu);
+}
+
+.combattant-avatar,
+.equipe-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(var(--gris-moyen-rgb), 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.combattant-card.selected .combattant-avatar,
+.equipe-card.selected .equipe-avatar {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ── Planification des créneaux ─────────────────────────────────────────── */
+
+.scheduling-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.scheduling-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.tatami-selector {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  gap: 8px;
+}
+
+.tatami-option {
+  padding: 10px 12px;
+  border: 2px solid var(--gris-tres-clair);
+  background: var(--blanc);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  font-size: 12px;
+}
+
+.tatami-option:hover {
+  border-color: var(--bleu);
+}
+
+.tatami-option.selected {
+  background: var(--bleu);
+  color: var(--blanc);
+  border-color: var(--bleu);
+}
+
+.time-slots {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.time-slot {
+  padding: 8px;
+  border: 2px solid var(--gris-tres-clair);
+  background: var(--blanc);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.time-slot:hover {
+  border-color: var(--bleu);
+}
+
+.time-slot.selected {
+  background: var(--bleu);
+  color: var(--blanc);
+  border-color: var(--bleu);
+}
+
+.time-slot.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--gris-tres-clair);
+  color: var(--gris-moyen);
+}
+
+/* ── Boutons ────────────────────────────────────────────────────────────── */
+
+.modal-footer {
+  padding: 20px 24px;
+  border-top: 1px solid var(--gris-tres-clair);
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.modal-footer .btn {
+  min-width: 120px;
+}
+
+/* ── Mode sombre adaptatif ──────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    max-height: 95vh;
+  }
+
+  .combattants-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .scheduling-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .time-slots {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ── Désactivation du bouton confirmer ──────────────────────────────────── */
+
+.btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ── Scrollbar personnalisée ───────────────────────────────────────────── */
+
+.combattants-list::-webkit-scrollbar,
+.equipes-list::-webkit-scrollbar,
+.time-slots::-webkit-scrollbar {
+  width: 6px;
+}
+
+.combattants-list::-webkit-scrollbar-track,
+.equipes-list::-webkit-scrollbar-track,
+.time-slots::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.combattants-list::-webkit-scrollbar-thumb,
+.equipes-list::-webkit-scrollbar-thumb,
+.time-slots::-webkit-scrollbar-thumb {
+  background: var(--gris-tres-clair);
+  border-radius: 3px;
+}
+
+.combattants-list::-webkit-scrollbar-thumb:hover,
+.equipes-list::-webkit-scrollbar-thumb:hover,
+.time-slots::-webkit-scrollbar-thumb:hover {
+  background: var(--gris-clair);
+}

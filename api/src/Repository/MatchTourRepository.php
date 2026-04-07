@@ -39,4 +39,34 @@ class MatchTourRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Vérifie s'il existe un conflit de tatami (même tatami utilisé au même moment)
+     * pour un tournoi donné.
+     *
+     * @return bool true s'il y a un conflit, false sinon
+     */
+    public function hasConflictingTatami(int $tournoiId, int $tatami, \DateTime $heureDebut, \DateTime $heureFin): bool
+    {
+        $result = $this->createQueryBuilder('m')
+            ->select('m.id')
+            ->join('m.poule', 'poule')
+            ->join('poule.tournoi', 't')
+            ->where('t.id = :tournoiId')
+            ->andWhere('m.tatami = :tatami')
+            ->andWhere('m.heure_debut IS NOT NULL')
+            ->andWhere('m.heure_fin IS NOT NULL')
+            // Vérifier le chevauchement : debut1 < fin2 AND fin1 > debut2
+            ->andWhere('m.heure_debut < :heureFin')
+            ->andWhere('m.heure_fin > :heureDebut')
+            ->setParameter('tournoiId', $tournoiId)
+            ->setParameter('tatami', $tatami)
+            ->setParameter('heureDebut', $heureDebut)
+            ->setParameter('heureFin', $heureFin)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getResult();
+
+        return !empty($result);
+    }
 }

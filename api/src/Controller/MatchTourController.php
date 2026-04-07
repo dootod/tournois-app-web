@@ -72,6 +72,12 @@ class MatchTourController extends AbstractController
         $match->setRound($data['round'] ?? null);
 
         $this->applyOpponents($match, $data);
+
+        // Vérifier que les deux combattants/équipes sont différents
+        if ($error = $this->validateOpponents($match)) {
+            return $this->json(['message' => $error], Response::HTTP_BAD_REQUEST);
+        }
+
         $this->applyPlanning($match, $data);
 
         if ($error = $this->validateTatami($match, $poule)) {
@@ -102,6 +108,12 @@ class MatchTourController extends AbstractController
         if (isset($data['phase'])) $match->setPhase($data['phase']);
         if (array_key_exists('round', $data)) $match->setRound($data['round']);
         $this->applyOpponents($match, $data);
+
+        // Vérifier que les deux combattants/équipes sont différents
+        if ($error = $this->validateOpponents($match)) {
+            return $this->json(['message' => $error], Response::HTTP_BAD_REQUEST);
+        }
+
         $this->applyPlanning($match, $data);
 
         if ($error = $this->validateTatami($match, $match->getPoule(), $match->getId())) {
@@ -177,6 +189,26 @@ class MatchTourController extends AbstractController
         if (array_key_exists('heure_fin', $data)) {
             $match->setHeureFin($data['heure_fin'] ? new \DateTime($data['heure_fin']) : null);
         }
+    }
+
+    private function validateOpponents(MatchTour $match): ?string
+    {
+        $p1 = $match->getParticipant1();
+        $p2 = $match->getParticipant2();
+        $e1 = $match->getEquipe1();
+        $e2 = $match->getEquipe2();
+
+        // Vérifier que les deux combattants sont différents
+        if ($p1 && $p2 && $p1->getId() === $p2->getId()) {
+            return 'Les deux combattants doivent être différents.';
+        }
+
+        // Vérifier que les deux équipes sont différentes
+        if ($e1 && $e2 && $e1->getId() === $e2->getId()) {
+            return 'Les deux équipes doivent être différentes.';
+        }
+
+        return null;
     }
 
     private function validateTatami(MatchTour $match, ?object $poule, ?int $excludeMatchId = null): ?string

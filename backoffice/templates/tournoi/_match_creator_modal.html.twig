@@ -1,0 +1,161 @@
+{# MODAL CRÉATION DE MATCH - SOMBRE ET FONCTIONNELLE #}
+
+<!-- BACKDROP -->
+<div id="matchModalBackdrop" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:999;" onclick="closeMatchModal()"></div>
+
+<!-- MODAL -->
+<div id="matchModal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#1a1a1a;border:2px solid #444;border-radius:10px;padding:28px;width:90%;max-width:500px;box-shadow:0 20px 60px rgba(0,0,0,0.5);z-index:1000;max-height:90vh;overflow-y:auto;">
+  
+  <h2 style="margin:0 0 24px 0;font-size:22px;font-weight:700;color:#fff;">🥋 Créer un match</h2>
+
+  <form id="matchForm" method="POST" style="display:flex;flex-direction:column;gap:14px;">
+    
+    {# PHASE #}
+    <div>
+      <label style="display:block;font-weight:600;margin-bottom:8px;font-size:12px;color:#aaa;text-transform:uppercase;letter-spacing:0.5px;">Phase</label>
+      <select id="phaseSelect" name="phase" style="width:100%;padding:10px 12px;border:1px solid #444;background:#2a2a2a;color:#ddd;border-radius:6px;font-size:13px;font-weight:500;">
+        <option value="qualification" style="background:#2a2a2a;color:#ddd;">Qualification</option>
+        <option value="elimination" style="background:#2a2a2a;color:#ddd;">Finale</option>
+      </select>
+    </div>
+
+    {# POULE (obligatoire) #}
+    <div>
+      <label style="display:block;font-weight:600;margin-bottom:8px;font-size:12px;color:#aaa;text-transform:uppercase;letter-spacing:0.5px;">Poule *</label>
+      <select name="poule_id" style="width:100%;padding:10px 12px;border:1px solid #444;background:#2a2a2a;color:#ddd;border-radius:6px;font-size:13px;font-weight:500;">
+        <option value="" style="background:#2a2a2a;color:#ddd;">— Choisir une poule —</option>
+        {% for poule in poules %}
+        <option value="{{ poule.id }}" style="background:#2a2a2a;color:#ddd;">Poule {{ poule.categorie }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    {# COMBATTANTS / ÉQUIPES #}
+    <div>
+      <label style="display:block;font-weight:600;margin-bottom:8px;font-size:12px;color:#aaa;text-transform:uppercase;letter-spacing:0.5px;">
+        {% if tournoi.equipe %}Équipe 1{% else %}Combattant 1{% endif %} *
+      </label>
+      <select name="{% if tournoi.equipe %}equipe1_id{% else %}participant1_id{% endif %}" style="width:100%;padding:10px 12px;border:1px solid #444;background:#2a2a2a;color:#ddd;border-radius:6px;font-size:13px;font-weight:500;">
+        <option value="" style="background:#2a2a2a;color:#ddd;">— Sélectionner —</option>
+        {% if tournoi.equipe %}
+          {% for eq in equipes %}
+          <option value="{{ eq.id }}" style="background:#2a2a2a;color:#ddd;">{{ eq.nom }}</option>
+          {% endfor %}
+        {% else %}
+          {% for p in participants %}
+          <option value="{{ p.id }}" style="background:#2a2a2a;color:#ddd;">{{ p.adherent.prenom }} {{ p.adherent.nom }}</option>
+          {% endfor %}
+        {% endif %}
+      </select>
+    </div>
+
+    <div>
+      <label style="display:block;font-weight:600;margin-bottom:8px;font-size:12px;color:#aaa;text-transform:uppercase;letter-spacing:0.5px;">
+        {% if tournoi.equipe %}Équipe 2{% else %}Combattant 2{% endif %} *
+      </label>
+      <select name="{% if tournoi.equipe %}equipe2_id{% else %}participant2_id{% endif %}" style="width:100%;padding:10px 12px;border:1px solid #444;background:#2a2a2a;color:#ddd;border-radius:6px;font-size:13px;font-weight:500;">
+        <option value="" style="background:#2a2a2a;color:#ddd;">— Sélectionner —</option>
+        {% if tournoi.equipe %}
+          {% for eq in equipes %}
+          <option value="{{ eq.id }}" style="background:#2a2a2a;color:#ddd;">{{ eq.nom }}</option>
+          {% endfor %}
+        {% else %}
+          {% for p in participants %}
+          <option value="{{ p.id }}" style="background:#2a2a2a;color:#ddd;">{{ p.adherent.prenom }} {{ p.adherent.nom }}</option>
+          {% endfor %}
+        {% endif %}
+      </select>
+    </div>
+
+    {# PLANNING (optionnel) #}
+    <div style="border-top:1px solid #444;padding-top:14px;margin-top:8px;">
+      <label style="display:block;font-weight:600;margin-bottom:10px;font-size:12px;color:#aaa;text-transform:uppercase;letter-spacing:0.5px;">Planification (optionnel)</label>
+      
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+        <div>
+          <label style="display:block;font-size:11px;color:#888;margin-bottom:4px;">Tatami</label>
+          <select name="tatami" style="width:100%;padding:8px 10px;border:1px solid #444;background:#2a2a2a;color:#ddd;border-radius:4px;font-size:12px;">
+            <option value="" style="background:#2a2a2a;color:#ddd;">—</option>
+            {% for i in 1..tournoi.parametre.nb_tatamis %}
+            <option value="{{ i }}" style="background:#2a2a2a;color:#ddd;">T{{ i }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;color:#888;margin-bottom:4px;">Début</label>
+          <select name="heure_debut" style="width:100%;padding:8px 10px;border:1px solid #444;background:#2a2a2a;color:#ddd;border-radius:4px;font-size:12px;">
+            <option value="" style="background:#2a2a2a;color:#ddd;">—</option>
+            {% for creneau in creneaux %}
+            <option value="{{ creneau }}" style="background:#2a2a2a;color:#ddd;">{{ creneau }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;color:#888;margin-bottom:4px;">Fin</label>
+          <select name="heure_fin" style="width:100%;padding:8px 10px;border:1px solid #444;background:#2a2a2a;color:#ddd;border-radius:4px;font-size:12px;">
+            <option value="" style="background:#2a2a2a;color:#ddd;">—</option>
+            {% for creneau in creneaux %}
+            <option value="{{ creneau }}" style="background:#2a2a2a;color:#ddd;">{{ creneau }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </div>
+
+    {# BUTTONS #}
+    <div style="display:flex;gap:10px;margin-top:18px;">
+      <button type="button" style="padding:10px 14px;text-align:center;background:#333;color:#ddd;border:1px solid #444;border-radius:6px;font-weight:600;font-size:13px;cursor:pointer;display:block;flex:1;" onclick="closeMatchModal()">Annuler</button>
+      <button type="submit" style="padding:10px 14px;text-align:center;background:#FFD700;color:#000;border:none;border-radius:6px;font-weight:600;font-size:13px;cursor:pointer;display:block;flex:1;">✓ Créer</button>
+    </div>
+
+  </form>
+</div>
+
+<script>
+function openMatchModal(phase = 'qualification') {
+  document.getElementById('matchModalBackdrop').style.display = 'block';
+  document.getElementById('matchModal').style.display = 'block';
+  document.getElementById('matchForm').reset();
+  document.getElementById('phaseSelect').value = phase;
+}
+
+function closeMatchModal() {
+  document.getElementById('matchModalBackdrop').style.display = 'none';
+  document.getElementById('matchModal').style.display = 'none';
+}
+
+document.getElementById('matchForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const phase = document.getElementById('phaseSelect').value;
+  const pouleId = this.querySelector('select[name="poule_id"]').value;
+  const isTeam = '{{ tournoi.equipe ? "true" : "false" }}' === 'true';
+  
+  const select1 = this.querySelector('select[name="' + (isTeam ? 'equipe1_id' : 'participant1_id') + '"]').value;
+  const select2 = this.querySelector('select[name="' + (isTeam ? 'equipe2_id' : 'participant2_id') + '"]').value;
+  
+  // Validation
+  let errors = [];
+  if (!pouleId) errors.push('❌ Sélectionne une poule');
+  if (!select1 || !select2) errors.push('❌ Sélectionne les 2 ' + (isTeam ? 'équipes' : 'combattants'));
+  if (select1 && select2 && select1 === select2) errors.push('❌ Les 2 ' + (isTeam ? 'équipes' : 'combattants') + ' doivent être différents');
+  
+  // Validation horaires
+  const debut = this.querySelector('select[name="heure_debut"]').value;
+  const fin = this.querySelector('select[name="heure_fin"]').value;
+  
+  if ((debut || fin) && !debut) errors.push('❌ Si tu ajoutes l\'heure de fin, ajoute aussi l\'heure de début');
+  if ((debut || fin) && !fin) errors.push('❌ Si tu ajoutes l\'heure de début, ajoute aussi l\'heure de fin');
+  if (debut && fin && debut >= fin) errors.push('❌ L\'heure de début doit être avant l\'heure de fin');
+  
+  if (errors.length > 0) {
+    alert(errors.join('\n'));
+    return;
+  }
+  
+  // Soumettre
+  const route = phase === 'elimination' ? '{{ path("app_tournoi_match_finale_add", {id: id}) }}' : '{{ path("app_tournoi_match_add", {id: id}) }}';
+  this.action = route;
+  this.submit();
+});
+</script>

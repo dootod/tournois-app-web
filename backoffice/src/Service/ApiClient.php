@@ -114,6 +114,14 @@ class ApiClient
     public function updateMatch(int $id, array $data): ?array { return $this->request('PUT', '/matchs/' . $id, $data); }
     public function deleteMatch(int $id): ?array { return $this->request('DELETE', '/matchs/' . $id); }
     public function getMatchScores(int $id): array { return $this->request('GET', '/matchs/' . $id . '/scores') ?? []; }
+    public function checkTatamiConflict(int $tournoiId, int $tatami, string $heureDebut, string $heureFin, ?int $excludeMatchId = null): ?array
+    {
+        $endpoint = '/tournois/' . $tournoiId . '/check-tatami-conflict?tatami=' . $tatami . '&heure_debut=' . urlencode($heureDebut) . '&heure_fin=' . urlencode($heureFin);
+        if ($excludeMatchId) {
+            $endpoint .= '&exclude_match_id=' . $excludeMatchId;
+        }
+        return $this->request('GET', $endpoint);
+    }
 
     // ─── SCORES ─────────────────────────────────────────────────────────────
 

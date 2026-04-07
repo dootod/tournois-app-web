@@ -165,6 +165,18 @@
     </button>
 </div>
 
+{# BOUTON CRÉER UN MATCH - UNIQUE EN HAUT #}
+{% if poules is not empty %}
+<div style="margin-bottom:20px;">
+    <button type="button" 
+            class="btn btn-primary" 
+            onclick="openMatchModal('qualification')"
+            style="font-size:15px;padding:12px 24px;width:100%;">
+        + Créer un match
+    </button>
+</div>
+{% endif %}
+
 {# ═══ TAB PARTICIPANTS (individuel) ══════════════════════════════════════════ #}
 <div id="pane-participants" class="tab-pane" {% if tournoi.equipe %}style="display:none;"{% endif %}>
     <div class="card">
@@ -349,81 +361,6 @@
 {# ═══ TAB QUALIFICATION ═══════════════════════════════════════════════════════ #}
 <div id="pane-qualification" class="tab-pane" style="display:none;">
 
-    {# Formulaire créer match de qualification #}
-    {% if poules is not empty %}
-    <div class="card" style="margin-bottom:20px;">
-        <div class="card-header"><span class="card-title">Créer un match de qualification</span></div>
-        <div class="card-body">
-            <form method="post" action="{{ path('app_tournoi_match_add', {id:tournoi.id}) }}">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-                    <div class="form-group" style="margin-bottom:0;">
-                        <label class="form-label">Poule</label>
-                        <select name="poule_id" class="form-control" required>
-                            <option value="">— Sélectionner —</option>
-                            {% for p in poules %}<option value="{{ p.id }}">Poule {{ p.categorie }}</option>{% endfor %}
-                        </select>
-                    </div>
-                    <div class="form-group" style="margin-bottom:0;">
-                        <label class="form-label">Tatami</label>
-                        <select name="tatami" class="form-control">
-                            <option value="">— Non assigné —</option>
-                            {% if tournoi.parametre %}
-                                {% for i in 1..tournoi.parametre.nb_tatamis %}<option value="{{ i }}">Tatami {{ i }}</option>{% endfor %}
-                            {% endif %}
-                        </select>
-                    </div>
-                    {% if not tournoi.equipe %}
-                    <div class="form-group" style="margin-bottom:0;">
-                        <label class="form-label">Combattant 1</label>
-                        <select name="participant1_id" class="form-control">
-                            <option value="">— Sélectionner —</option>
-                            {% for p in participants %}{% if p.adherent %}<option value="{{ p.id }}">{{ p.adherent.prenom }} {{ p.adherent.nom }}</option>{% endif %}{% endfor %}
-                        </select>
-                    </div>
-                    <div class="form-group" style="margin-bottom:0;">
-                        <label class="form-label">Combattant 2</label>
-                        <select name="participant2_id" class="form-control">
-                            <option value="">— Sélectionner —</option>
-                            {% for p in participants %}{% if p.adherent %}<option value="{{ p.id }}">{{ p.adherent.prenom }} {{ p.adherent.nom }}</option>{% endif %}{% endfor %}
-                        </select>
-                    </div>
-                    {% else %}
-                    <div class="form-group" style="margin-bottom:0;">
-                        <label class="form-label">Équipe 1</label>
-                        <select name="equipe1_id" class="form-control">
-                            <option value="">— Sélectionner —</option>
-                            {% for eq in equipes %}<option value="{{ eq.id }}">{{ eq.nom }}</option>{% endfor %}
-                        </select>
-                    </div>
-                    <div class="form-group" style="margin-bottom:0;">
-                        <label class="form-label">Équipe 2</label>
-                        <select name="equipe2_id" class="form-control">
-                            <option value="">— Sélectionner —</option>
-                            {% for eq in equipes %}<option value="{{ eq.id }}">{{ eq.nom }}</option>{% endfor %}
-                        </select>
-                    </div>
-                    {% endif %}
-                    <div class="form-group" style="margin-bottom:0;">
-                        <label class="form-label">Début</label>
-                        <select name="heure_debut" class="form-control">
-                            <option value="">— Non assigné —</option>
-                            {% for c in creneaux %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
-                        </select>
-                    </div>
-                    <div class="form-group" style="margin-bottom:0;">
-                        <label class="form-label">Fin</label>
-                        <select name="heure_fin" class="form-control">
-                            <option value="">— Non assigné —</option>
-                            {% for c in creneaux %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
-                        </select>
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-primary btn-sm">+ Créer le match</button>
-            </form>
-        </div>
-    </div>
-    {% endif %}
-
     {# Matchs par poule #}
     {% for poule in poules %}
     {% set matchsPoule = matchsQualifParPoule[poule.id] ?? [] %}
@@ -447,92 +384,6 @@
 
 {# ═══ TAB PHASE FINALE ═══════════════════════════════════════════════════════ #}
 <div id="pane-finale" class="tab-pane" style="display:none;">
-
-    {# Formulaire créer match de phase finale #}
-    {% if poules is not empty %}
-    <div class="card" style="margin-bottom:20px;">
-        <div class="card-header"><span class="card-title">Créer un match de phase finale</span></div>
-        <div class="card-body">
-            <form method="post" action="{{ path('app_tournoi_match_finale_add', {id:tournoi.id}) }}">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-                    <div class="form-group" style="margin-bottom:0;">
-                        <label class="form-label">Poule de rattachement</label>
-                        <select name="poule_id" class="form-control" required>
-                            <option value="">— Sélectionner —</option>
-                            {% for p in poules %}<option value="{{ p.id }}">Poule {{ p.categorie }}</option>{% endfor %}
-                        </select>
-                    </div>
-                    <div class="form-group" style="margin-bottom:0;">
-                        <label class="form-label">Tour</label>
-                        <select name="round" class="form-control" required>
-                            <option value="">— Sélectionner —</option>
-                            {% for r in rounds %}<option value="{{ r }}">{{ r }}</option>{% endfor %}
-                        </select>
-                    </div>
-                    <div class="form-group" style="margin-bottom:0;">
-                        <label class="form-label">Tatami</label>
-                        <select name="tatami" class="form-control">
-                            <option value="">— Non assigné —</option>
-                            {% if tournoi.parametre %}
-                                {% for i in 1..tournoi.parametre.nb_tatamis %}<option value="{{ i }}">Tatami {{ i }}</option>{% endfor %}
-                            {% endif %}
-                        </select>
-                    </div>
-                    {% if not tournoi.equipe %}
-                    <div class="form-group" style="margin-bottom:0;grid-column:span 2;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                        <div>
-                            <label class="form-label">Combattant 1</label>
-                            <select name="participant1_id" class="form-control">
-                                <option value="">— Sélectionner —</option>
-                                {% for p in participants %}{% if p.adherent %}<option value="{{ p.id }}">{{ p.adherent.prenom }} {{ p.adherent.nom }}</option>{% endif %}{% endfor %}
-                            </select>
-                        </div>
-                        <div>
-                            <label class="form-label">Combattant 2</label>
-                            <select name="participant2_id" class="form-control">
-                                <option value="">— Sélectionner —</option>
-                                {% for p in participants %}{% if p.adherent %}<option value="{{ p.id }}">{{ p.adherent.prenom }} {{ p.adherent.nom }}</option>{% endif %}{% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                    {% else %}
-                    <div class="form-group" style="margin-bottom:0;grid-column:span 2;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                        <div>
-                            <label class="form-label">Équipe 1</label>
-                            <select name="equipe1_id" class="form-control">
-                                <option value="">— Sélectionner —</option>
-                                {% for eq in equipes %}<option value="{{ eq.id }}">{{ eq.nom }}</option>{% endfor %}
-                            </select>
-                        </div>
-                        <div>
-                            <label class="form-label">Équipe 2</label>
-                            <select name="equipe2_id" class="form-control">
-                                <option value="">— Sélectionner —</option>
-                                {% for eq in equipes %}<option value="{{ eq.id }}">{{ eq.nom }}</option>{% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                    {% endif %}
-                    <div class="form-group" style="margin-bottom:0;">
-                        <label class="form-label">Début</label>
-                        <select name="heure_debut" class="form-control">
-                            <option value="">— Non assigné —</option>
-                            {% for c in creneaux %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
-                        </select>
-                    </div>
-                    <div class="form-group" style="margin-bottom:0;">
-                        <label class="form-label">Fin</label>
-                        <select name="heure_fin" class="form-control">
-                            <option value="">— Non assigné —</option>
-                            {% for c in creneaux %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
-                        </select>
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-primary btn-sm">+ Créer le match</button>
-            </form>
-        </div>
-    </div>
-    {% endif %}
 
     {# Tableau par tour #}
     {% set hasElim = false %}
@@ -570,19 +421,30 @@
 </div>{# fin colonne droite #}
 </div>{# fin grille #}
 
+{# ── Modal moderne de création de match ─── #}
+{% include 'tournoi/_match_creator_modal.html.twig' with {
+    id: id,
+    tournoi: tournoi,
+    poules: poules,
+    participants: participants,
+    equipes: equipes,
+    rounds: rounds,
+    creneaux: creneaux
+} %}
+
 {% endblock %}
 
-{# ── Macro match card ─────────────────────────────────────────────────────── #}
+{# ── Macro match card - AMÉLIORÉE ─────────────────────────────────────────── #}
 {% macro renderMatch(match, tournoi, creneaux, tournoiId) %}
-<div style="border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:14px;margin-bottom:12px;background:rgba(255,255,255,.02);">
+<div style="border:2px solid #444;border-radius:10px;padding:16px;margin-bottom:14px;background:#1a1a1a;box-shadow:0 4px 12px rgba(0,0,0,0.4);">
 
     {# En-tête match #}
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
         <div>
-            <div style="font-size:12px;color:var(--gris-moyen);margin-bottom:4px;">
-                Match #{{ match.id }}{% if match.round %} · <span style="color:var(--accent);">{{ match.round }}</span>{% endif %}
+            <div style="font-size:12px;color:#aaa;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">
+                Match #{{ match.id }}{% if match.round %} · <span style="color:#FFD700;font-weight:600;">{{ match.round }}</span>{% endif %}
             </div>
-            <div style="font-size:15px;font-weight:600;color:var(--blanc);">
+            <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:8px;">
                 {% if tournoi.equipe %}
                     {% set nom1 = match.equipe1 ? match.equipe1.nom : '?' %}
                     {% set nom2 = match.equipe2 ? match.equipe2.nom : '?' %}
@@ -590,9 +452,9 @@
                     {% set nom1 = match.participant1 and match.participant1.adherent ? match.participant1.adherent.prenom ~ ' ' ~ match.participant1.adherent.nom : '?' %}
                     {% set nom2 = match.participant2 and match.participant2.adherent ? match.participant2.adherent.prenom ~ ' ' ~ match.participant2.adherent.nom : '?' %}
                 {% endif %}
-                {{ nom1 }} <span style="color:var(--gris-moyen);">vs</span> {{ nom2 }}
+                <span style="color:#e0e0e0;">{{ nom1 }}</span> <span style="color:#666;font-weight:400;">vs</span> <span style="color:#e0e0e0;">{{ nom2 }}</span>
             </div>
-            <div style="display:flex;gap:10px;margin-top:6px;font-size:12px;color:var(--gris-moyen);">
+            <div style="display:flex;gap:12px;font-size:12px;color:#888;">
                 {% if match.tatami %}<span>🥋 Tatami {{ match.tatami }}</span>{% endif %}
                 {% if match.heure_debut %}<span>🕐 {{ match.heure_debut|date('H:i') }}{% if match.heure_fin %} – {{ match.heure_fin|date('H:i') }}{% endif %}</span>{% endif %}
             </div>
@@ -601,30 +463,30 @@
         <div style="text-align:right;">
             {% if tournoi.equipe %}
                 {% if match.score_equipe1 is not null %}
-                <span style="font-size:16px;font-weight:700;color:var(--blanc);">{{ match.score_equipe1 }} – {{ match.score_equipe2 ?? 0 }}</span>
-                {% else %}<span class="badge badge-grey" style="font-size:11px;">Sans résultat</span>{% endif %}
+                <div style="font-size:28px;font-weight:800;color:#FFD700;text-shadow: 0 0 15px rgba(255,215,0,0.4);">{{ match.score_equipe1 }} – {{ match.score_equipe2 ?? 0 }}</div>
+                {% else %}<span style="padding:6px 12px;background:#333;border-radius:4px;font-size:11px;color:#aaa;display:inline-block;">Sans résultat</span>{% endif %}
             {% else %}
                 {% set gagnant = null %}
                 {% for s in match.scores %}{% if s.gagnant %}{% set gagnant = s %}{% endif %}{% endfor %}
                 {% if gagnant %}
-                <span class="badge badge-green" style="font-size:12px;">🏅 {{ gagnant.participant.adherent ? gagnant.participant.adherent.prenom ~ ' ' ~ gagnant.participant.adherent.nom : '?' }}</span>
-                {% else %}<span class="badge badge-grey" style="font-size:11px;">Sans résultat</span>{% endif %}
+                <span style="padding:8px 14px;background:#2d5016;border-radius:6px;font-size:12px;color:#a1e62e;font-weight:600;display:inline-block;">🏅 {{ gagnant.participant.adherent ? gagnant.participant.adherent.prenom ~ ' ' ~ gagnant.participant.adherent.nom : '?' }}</span>
+                {% else %}<span style="padding:6px 12px;background:#333;border-radius:4px;font-size:11px;color:#aaa;display:inline-block;">Sans résultat</span>{% endif %}
             {% endif %}
         </div>
     </div>
 
     {# Scores individuels existants #}
     {% if not tournoi.equipe and match.scores is not empty %}
-    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
         {% for s in match.scores %}
-        <div style="display:flex;align-items:center;gap:6px;padding:5px 10px;background:rgba(255,255,255,.04);border-radius:6px;font-size:12px;">
-            <span style="color:var(--blanc);">{{ s.participant.adherent ? s.participant.adherent.prenom ~ ' ' ~ s.participant.adherent.nom : '#' ~ s.participant.id }}</span>
-            <span class="text-mono" style="color:var(--gris-clair);">{{ s.score }} pts</span>
-            {% if s.gagnant %}<span style="color:#4ade80;">✓</span>{% endif %}
-            {% if s.disqualification %}<span style="color:#f87171;">DSQ</span>{% endif %}
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#2a2a2a;border:1px solid #444;border-radius:6px;font-size:12px;">
+            <span style="color:#ddd;font-weight:500;">{{ s.participant.adherent ? s.participant.adherent.prenom ~ ' ' ~ s.participant.adherent.nom : '#' ~ s.participant.id }}</span>
+            <span class="text-mono" style="color:#FFD700;font-weight:600;">{{ s.score }}<span style="font-size:10px;color:#888;">pts</span></span>
+            {% if s.gagnant %}<span style="color:#a1e62e;font-weight:700;">✓ GAGNANT</span>{% endif %}
+            {% if s.disqualification %}<span style="color:#ff6b6b;font-weight:700;">DSQ</span>{% endif %}
             <form method="post" action="{{ path('app_tournoi_score_delete', {id:tournoiId, matchId:match.id, scoreId:s.id}) }}"
-                  onsubmit="return confirm('Supprimer ce score ?')">
-                <button type="submit" style="background:none;border:none;cursor:pointer;color:var(--gris-moyen);font-size:11px;padding:0 2px;">✕</button>
+                  onsubmit="return confirm('Supprimer ce score ?')" style="margin:0;padding:0;">
+                <button type="submit" style="background:none;border:none;cursor:pointer;color:#ff6b6b;font-size:14px;padding:0 2px;font-weight:700;">✕</button>
             </form>
         </div>
         {% endfor %}
@@ -632,112 +494,112 @@
     {% endif %}
 
     {# Actions #}
-    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start;">
 
         {# Score individuel #}
         {% if not tournoi.equipe %}
-        <details style="flex:1;min-width:220px;">
-            <summary style="cursor:pointer;font-size:12px;color:var(--gris-clair);padding:5px 0;user-select:none;">✎ Résultat individuel</summary>
+        <details style="flex:1;min-width:260px;">
+            <summary style="cursor:pointer;font-size:13px;color:#ddd;padding:8px 14px;background:#2a2a2a;border:1px solid #444;border-radius:6px;transition:all .2s;font-weight:600;display:inline-block;user-select:none;">✎ Enregistrer un résultat</summary>
             <form method="post" action="{{ path('app_tournoi_score_add', {id:tournoiId, matchId:match.id}) }}"
-                  style="margin-top:10px;padding:12px;background:rgba(255,255,255,.04);border-radius:6px;">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                  style="margin-top:10px;padding:14px;background:#2a2a2a;border:1px solid #444;border-radius:8px;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
                     <div>
-                        <label style="font-size:11px;color:var(--gris-moyen);">Participant</label>
-                        <select name="participant_id" class="form-control" style="padding:5px 8px;font-size:12px;" required>
-                            <option value="">—</option>
+                        <label style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;display:block;margin-bottom:6px;">Participant</label>
+                        <select name="participant_id" class="form-control" style="padding:8px 10px;font-size:13px;background:#1a1a1a;border:1px solid #444;color:#ddd;border-radius:4px;" required>
+                            <option value="" style="background:#1a1a1a;color:#ddd;">—</option>
                             {% if match.participant1 and match.participant1.adherent %}
-                            <option value="{{ match.participant1.id }}">{{ match.participant1.adherent.prenom }} {{ match.participant1.adherent.nom }}</option>
+                            <option value="{{ match.participant1.id }}" style="background:#1a1a1a;color:#ddd;">{{ match.participant1.adherent.prenom }} {{ match.participant1.adherent.nom }}</option>
                             {% endif %}
                             {% if match.participant2 and match.participant2.adherent %}
-                            <option value="{{ match.participant2.id }}">{{ match.participant2.adherent.prenom }} {{ match.participant2.adherent.nom }}</option>
+                            <option value="{{ match.participant2.id }}" style="background:#1a1a1a;color:#ddd;">{{ match.participant2.adherent.prenom }} {{ match.participant2.adherent.nom }}</option>
                             {% endif %}
                         </select>
                     </div>
                     <div>
-                        <label style="font-size:11px;color:var(--gris-moyen);">Score (pts)</label>
-                        <input type="number" name="score" class="form-control" value="0" min="0" style="padding:5px 8px;font-size:12px;">
+                        <label style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;display:block;margin-bottom:6px;">Points</label>
+                        <input type="number" name="score" class="form-control" value="0" min="0" style="padding:8px 10px;font-size:13px;background:#1a1a1a;border:1px solid #444;color:#FFD700;border-radius:4px;font-weight:600;">
                     </div>
                 </div>
-                <div style="display:flex;gap:12px;margin-bottom:10px;font-size:12px;">
-                    <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--gris-clair);">
-                        <input type="checkbox" name="gagnant" value="1"> Gagnant
+                <div style="display:flex;gap:16px;margin-bottom:12px;font-size:12px;">
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:#ddd;font-weight:500;">
+                        <input type="checkbox" name="gagnant" value="1" style="cursor:pointer;accent-color:#a1e62e;"> <span>🏆 Gagnant</span>
                     </label>
-                    <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--gris-clair);">
-                        <input type="checkbox" name="disqualification" value="1"> Disqualifié
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:#ddd;font-weight:500;">
+                        <input type="checkbox" name="disqualification" value="1" style="cursor:pointer;accent-color:#ff6b6b;"> <span>❌ Disqualifié</span>
                     </label>
                 </div>
-                <button type="submit" class="btn btn-primary btn-sm" style="font-size:12px;">Enregistrer</button>
+                <button type="submit" style="padding:8px 14px;text-align:center;background:#FFD700;color:#000;border:none;border-radius:4px;font-weight:600;font-size:13px;cursor:pointer;display:block;width:100%;">Enregistrer</button>
             </form>
         </details>
         {% endif %}
 
         {# Score équipe #}
         {% if tournoi.equipe %}
-        <details style="flex:1;min-width:220px;">
-            <summary style="cursor:pointer;font-size:12px;color:var(--gris-clair);padding:5px 0;user-select:none;">✎ Score équipes</summary>
+        <details style="flex:1;min-width:280px;">
+            <summary style="cursor:pointer;font-size:13px;color:#ddd;padding:8px 14px;background:#2a2a2a;border:1px solid #444;border-radius:6px;transition:all .2s;font-weight:600;display:inline-block;user-select:none;">✎ Saisir le score</summary>
             <form method="post" action="{{ path('app_tournoi_match_resultat_equipe', {id:tournoiId, matchId:match.id}) }}"
-                  style="margin-top:10px;padding:12px;background:rgba(255,255,255,.04);border-radius:6px;">
-                <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:end;margin-bottom:10px;">
+                  style="margin-top:10px;padding:14px;background:#2a2a2a;border:1px solid #444;border-radius:8px;">
+                <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:end;margin-bottom:12px;">
                     <div>
-                        <label style="font-size:11px;color:var(--gris-moyen);">{{ match.equipe1 ? match.equipe1.nom : 'Équipe 1' }}</label>
+                        <label style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;display:block;margin-bottom:6px;">{{ match.equipe1 ? match.equipe1.nom : 'Équipe 1' }}</label>
                         <input type="number" name="score_equipe1" class="form-control" min="0"
-                               value="{{ match.score_equipe1 ?? '' }}" placeholder="0" style="padding:5px 8px;font-size:14px;text-align:center;">
+                               value="{{ match.score_equipe1 ?? '' }}" placeholder="0" style="padding:10px;font-size:18px;text-align:center;background:#1a1a1a;border:2px solid #FFD700;color:#FFD700;border-radius:6px;font-weight:700;width:100%;">
                     </div>
-                    <div style="font-size:16px;color:var(--gris-moyen);padding-bottom:8px;">–</div>
+                    <div style="font-size:24px;color:#666;padding-bottom:4px;font-weight:700;">—</div>
                     <div>
-                        <label style="font-size:11px;color:var(--gris-moyen);">{{ match.equipe2 ? match.equipe2.nom : 'Équipe 2' }}</label>
+                        <label style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;display:block;margin-bottom:6px;">{{ match.equipe2 ? match.equipe2.nom : 'Équipe 2' }}</label>
                         <input type="number" name="score_equipe2" class="form-control" min="0"
-                               value="{{ match.score_equipe2 ?? '' }}" placeholder="0" style="padding:5px 8px;font-size:14px;text-align:center;">
+                               value="{{ match.score_equipe2 ?? '' }}" placeholder="0" style="padding:10px;font-size:18px;text-align:center;background:#1a1a1a;border:2px solid #FFD700;color:#FFD700;border-radius:6px;font-weight:700;width:100%;">
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary btn-sm" style="font-size:12px;">Enregistrer</button>
+                <button type="submit" style="padding:10px 14px;text-align:center;background:#FFD700;color:#000;border:none;border-radius:4px;font-weight:600;font-size:13px;cursor:pointer;display:block;width:100%;">Enregistrer le résultat</button>
             </form>
         </details>
         {% endif %}
 
         {# Planification #}
-        <details style="flex:1;min-width:220px;">
-            <summary style="cursor:pointer;font-size:12px;color:var(--gris-clair);padding:5px 0;user-select:none;">📅 Créneau</summary>
+        <details style="flex:1;min-width:260px;">
+            <summary style="cursor:pointer;font-size:13px;color:#ddd;padding:8px 14px;background:#2a2a2a;border:1px solid #444;border-radius:6px;transition:all .2s;font-weight:600;display:inline-block;user-select:none;">📅 Plannifier</summary>
             <form method="post" action="{{ path('app_tournoi_match_planifier', {id:tournoiId, matchId:match.id}) }}"
-                  style="margin-top:10px;padding:12px;background:rgba(255,255,255,.04);border-radius:6px;">
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;">
+                  style="margin-top:10px;padding:14px;background:#2a2a2a;border:1px solid #444;border-radius:8px;">
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
                     <div>
-                        <label style="font-size:11px;color:var(--gris-moyen);">Tatami</label>
-                        <select name="tatami" class="form-control" style="padding:5px 8px;font-size:12px;" required>
+                        <label style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;display:block;margin-bottom:6px;">Tatami</label>
+                        <select name="tatami" class="form-control" style="padding:8px 10px;font-size:12px;background:#1a1a1a;border:1px solid #444;color:#ddd;border-radius:4px;" required>
                             {% if tournoi.parametre %}
                                 {% for i in 1..tournoi.parametre.nb_tatamis %}
-                                <option value="{{ i }}" {{ match.tatami == i ? 'selected':'' }}>Tatami {{ i }}</option>
+                                <option value="{{ i }}" style="background:#1a1a1a;color:#ddd;" {{ match.tatami == i ? 'selected':'' }}>T{{ i }}</option>
                                 {% endfor %}
                             {% else %}
-                                <option value="1">Tatami 1</option>
+                                <option value="1" style="background:#1a1a1a;color:#ddd;">T1</option>
                             {% endif %}
                         </select>
                     </div>
                     <div>
-                        <label style="font-size:11px;color:var(--gris-moyen);">Début</label>
-                        <select name="heure_debut" class="form-control" style="padding:5px 8px;font-size:12px;" required>
+                        <label style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;display:block;margin-bottom:6px;">Début</label>
+                        <select name="heure_debut" class="form-control" style="padding:8px 10px;font-size:12px;background:#1a1a1a;border:1px solid #444;color:#ddd;border-radius:4px;" required>
                             {% for c in creneaux %}
-                            <option value="{{ c }}" {{ match.heure_debut and match.heure_debut|date('H:i') == c ? 'selected':'' }}>{{ c }}</option>
+                            <option value="{{ c }}" style="background:#1a1a1a;color:#ddd;" {{ match.heure_debut and match.heure_debut|date('H:i') == c ? 'selected':'' }}>{{ c }}</option>
                             {% endfor %}
                         </select>
                     </div>
                     <div>
-                        <label style="font-size:11px;color:var(--gris-moyen);">Fin</label>
-                        <select name="heure_fin" class="form-control" style="padding:5px 8px;font-size:12px;" required>
+                        <label style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;display:block;margin-bottom:6px;">Fin</label>
+                        <select name="heure_fin" class="form-control" style="padding:8px 10px;font-size:12px;background:#1a1a1a;border:1px solid #444;color:#ddd;border-radius:4px;" required>
                             {% for c in creneaux %}
-                            <option value="{{ c }}" {{ match.heure_fin and match.heure_fin|date('H:i') == c ? 'selected':'' }}>{{ c }}</option>
+                            <option value="{{ c }}" style="background:#1a1a1a;color:#ddd;" {{ match.heure_fin and match.heure_fin|date('H:i') == c ? 'selected':'' }}>{{ c }}</option>
                             {% endfor %}
                         </select>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary btn-sm" style="font-size:12px;">Attribuer</button>
+                <button type="submit" style="padding:8px 14px;text-align:center;background:#FFD700;color:#000;border:none;border-radius:4px;font-weight:600;font-size:13px;cursor:pointer;display:block;width:100%;">Attribuer</button>
             </form>
         </details>
 
         {# Supprimer #}
         <form method="post" action="{{ path('app_tournoi_match_delete', {id:tournoiId, matchId:match.id}) }}"
               onsubmit="return confirm('Supprimer ce match ?')" style="align-self:flex-start;">
-            <button type="submit" class="btn btn-danger btn-sm" style="font-size:12px;">Supprimer</button>
+            <button type="submit" style="padding:8px 14px;background:#ff6b6b;color:#fff;border:none;border-radius:6px;font-weight:600;font-size:12px;cursor:pointer;">🗑️ Supprimer</button>
         </form>
 
     </div>
@@ -746,19 +608,16 @@
 
 {% block javascripts %}
 <script>
+// ── Gestion des onglets ────────────────────────────────────────────────────
 function showTab(name) {
-    // Masquer tous les panes
     document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
-    // Désactiver tous les boutons
     document.querySelectorAll('.tab-btn').forEach(b => {
         b.style.borderBottomColor = 'transparent';
         b.style.color = 'var(--gris-clair)';
         b.style.fontWeight = '500';
     });
-    // Afficher le pane actif
     const pane = document.getElementById('pane-' + name);
     if (pane) pane.style.display = '';
-    // Activer le bouton
     const btn = document.getElementById('tab-' + name);
     if (btn) {
         btn.style.borderBottomColor = 'var(--accent)';
@@ -766,5 +625,23 @@ function showTab(name) {
         btn.style.fontWeight = '600';
     }
 }
+
+// ── Gestion du modal de création de match ──────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+    const qualifBtn = document.querySelector('[data-open-match-modal-qualif]');
+    const elimBtn = document.querySelector('[data-open-match-modal-elim]');
+    
+    if (qualifBtn) {
+        qualifBtn.addEventListener('click', function() {
+            openMatchModal('qualification');
+        });
+    }
+    
+    if (elimBtn) {
+        elimBtn.addEventListener('click', function() {
+            openMatchModal('elimination');
+        });
+    }
+});
 </script>
 {% endblock %}

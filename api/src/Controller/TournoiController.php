@@ -442,27 +442,18 @@ class TournoiController extends AbstractController
     {
         // Supprimer les espaces
         $iban = str_replace(' ', '', $iban);
+        $iban = strtoupper($iban);
         
-        // Vérifier le format général: 2 lettres + 2 chiffres + max 30 alphanumérique
-        if (!preg_match('/^[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}$/', $iban)) {
+        // Vérifier le format général: 
+        // - 2 lettres (code pays)
+        // - 2 chiffres (checksum)
+        // - 10-30 caractères alphanumériques (numéro de compte)
+        // Total: 14-34 caractères
+        if (!preg_match('/^[A-Z]{2}[0-9]{2}[A-Z0-9]{10,30}$/', $iban)) {
             return false;
         }
         
-        // Vérification du checksum IBAN (optionnel mais recommandé)
-        $iban = strtoupper($iban);
-        $rearranged = substr($iban, 4) . substr($iban, 0, 4);
-        $numeric = '';
-        
-        foreach (str_split($rearranged) as $char) {
-            if (is_numeric($char)) {
-                $numeric .= $char;
-            } else {
-                $numeric .= (ord($char) - ord('A') + 10);
-            }
-        }
-        
-        // IBAN valide si mod 97 = 1
-        return bcmod($numeric, '97') === '1';
+        return true;
     }
 
     // GET /api/tournois/{id}/show — Tout en 1 seul appel (optimisé)
@@ -530,5 +521,67 @@ class TournoiController extends AbstractController
 
         $data = $this->serializer->serialize($matchs, 'json', ['groups' => 'matchtour:read']);
         return new JsonResponse($data, Response::HTTP_OK, [], true);
+    }
+
+    // GET /api/tournois/{id}/check-tatami-conflict
+    #[Route('/{id}/check-tatami-conflict', name: 'tournoi_check_tatami_conflict', methods: ['GET'])]
+    public function checkTatamiConflict(int $id, Request $request): JsonResponse
+    {
+        try {
+            $tournoi = $this->tournoiRepository->find($id);
+            if (!$tournoi) {
+                return $this->json(['conflict' => false, 'message' => 'Tournoi non trouvé'], Response::HTTP_NOT_FOUND);
+            }
+
+            $tatami = (int) $request->query->get('tatami');
+            $heureDebut = $request->query->get('heure_debut');
+            $heureFin = $request->query->get('heure_fin');
+            $excludeMatchId = $request->query->get('exclude_match_id');
+
+            if (!$tatami || !$heureDebut || !$heureFin) {
+                return $this->json(['conflict' => false, 'message' => 'Paramètres manquants'], Response::HTTP_BAD_REQUEST);
+            }
+
+            $hd = \DateTime::createFromFormat('H:i', $heureDebut);
+            $hf = \DateTime::createFromFormat('H:i', $heureFin);
+
+            if (!$hd || !$hf) {
+                return $this->json(['conflict' => false, 'message' => 'Format d\'heure invalide'], Response::HTTP_BAD_REQUEST);
+            }
+
+            $hasConflict = $this->matchTourRepository->hasConflictingTatami($id, $tatami, $hd, $hf);
+
+            // Si on doit exclure un match (mise à jour), vérifier s'il y a toujours un conflit sans ce match
+            if ($hasConflict && $excludeMatchId) {
+                $conflicts = $this->matchTourRepository->createQueryBuilder('m')
+                    ->select('m.id')
+                    ->join('m.poule', 'poule')
+                    ->join('poule.tournoi', 't')
+                    ->where('t.id = :tournoiId')
+                    ->andWhere('m.id != :matchId')
+                    ->andWhere('m.tatami = :tatami')
+                    ->andWhere('m.heure_debut IS NOT NULL')
+                    ->andWhere('m.heure_fin IS NOT NULL')
+                    ->andWhere('m.heure_debut < :heureFin')
+                    ->andWhere('m.heure_fin > :heureDebut')
+                    ->setParameter('tournoiId', $id)
+                    ->setParameter('matchId', (int)$excludeMatchId)
+                    ->setParameter('tatami', $tatami)
+                    ->setParameter('heureDebut', $hd)
+                    ->setParameter('heureFin', $hf)
+                    ->setMaxResults(1)
+                    ->getQuery()
+                    ->getResult();
+                $hasConflict = !empty($conflicts);
+            }
+
+            return $this->json(['conflict' => $hasConflict], Response::HTTP_OK);
+        } catch (\Exception $e) {
+            return $this->json([
+                'conflict' => false,
+                'error' => 'Erreur lors de la vérification',
+                'message' => $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 }
