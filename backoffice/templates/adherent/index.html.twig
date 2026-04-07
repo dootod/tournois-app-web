@@ -70,10 +70,6 @@
                             <div class="actions-cell">
                                 <a href="{{ path('app_adherent_edit', {id: a.id}) }}" class="btn btn-ghost btn-sm">Modifier</a>
 
-                                <form method="post" action="{{ path('app_adherent_renouvellement', {id: a.id}) }}" style="display: inline;">
-                                    <button type="submit" class="btn btn-ghost btn-sm" title="Renouveler l'adhésion">↻</button>
-                                </form>
-
                                 <form method="post" action="{{ path('app_adherent_delete', {id: a.id}) }}" style="display: inline;"
                                       onsubmit="return confirm('Supprimer {{ a.prenom }} {{ a.nom }} ?')">
                                     <button type="submit" class="btn btn-danger btn-sm">✕</button>

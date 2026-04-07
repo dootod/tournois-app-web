@@ -1,0 +1,52 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ user ? 'Modifier compte' : 'Nouveau compte' }}{% endblock %}
+{% block body %}
+<div class="page-header">
+    <h1 class="page-title">{{ user ? 'Modifier le compte' : 'Nouveau compte' }}</h1>
+    <a href="{{ path('app_users') }}" class="btn btn-ghost">← Retour</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-control" value="{{ user.email ?? '' }}" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Mot de passe {% if user %}<span class="text-muted">(laisser vide pour ne pas changer)</span>{% endif %}</label>
+                <input type="password" name="password" class="form-control" {% if not user %}required{% endif %}>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Rôle</label>
+                <select name="role" class="form-control" id="role-select" onchange="toggleAdherent()">
+                    <option value="user" {% if user and 'ROLE_ADMIN' not in user.roles %}selected{% endif %}>Utilisateur (adhérent)</option>
+                    <option value="admin" {% if user and 'ROLE_ADMIN' in user.roles %}selected{% endif %}>Administrateur</option>
+                </select>
+            </div>
+            <div class="form-group" id="adherent-group">
+                <label class="form-label">Adhérent lié</label>
+                <select name="adherent_id" class="form-control">
+                    <option value="">— Aucun —</option>
+                    {% for a in adherents %}
+                        <option value="{{ a.id }}" {% if user and user.adherent and user.adherent.id == a.id %}selected{% endif %}>
+                            {{ a.prenom }} {{ a.nom }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <div class="text-muted" style="font-size:11px;margin-top:4px;">
+                    Un compte utilisateur doit être lié à un adhérent pour pouvoir utiliser l'app mobile.
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </form>
+    </div>
+</div>
+<script>
+function toggleAdherent() {
+    const isAdmin = document.getElementById('role-select').value === 'admin';
+    document.getElementById('adherent-group').style.display = isAdmin ? 'none' : 'block';
+}
+toggleAdherent();
+</script>
+{% endblock %}

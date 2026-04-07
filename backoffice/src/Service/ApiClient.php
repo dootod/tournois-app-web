@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class ApiClient
@@ -11,9 +12,42 @@ class ApiClient
 
     public function __construct(
         private HttpClientInterface $httpClient,
-        string $apiBaseUrl = 'http://localhost/tournois-app-web-main/api/public/api'
+        private RequestStack $requestStack,
+        string $apiBaseUrl = 'http://localhost/tournois-app-web/api/public/api'
     ) {
         $this->baseUrl = rtrim($apiBaseUrl, '/');
+    }
+
+    private function getToken(): ?string
+    {
+        $session = $this->requestStack->getSession() ?? null;
+        return $session?->get('api_token');
+    }
+
+    public function setToken(?string $token): void
+    {
+        $this->requestStack->getSession()->set('api_token', $token);
+    }
+
+    public function login(string $email, string $password): ?array
+    {
+        $this->lastError = null;
+        try {
+            $response = $this->httpClient->request('POST', $this->baseUrl . '/login', [
+                'headers' => ['Content-Type' => 'application/json'],
+                'json' => ['email' => $email, 'password' => $password],
+            ]);
+            $status = $response->getStatusCode();
+            $decoded = json_decode($response->getContent(false), true);
+            if ($status >= 400) {
+                $this->lastError = $decoded['error'] ?? 'Login failed';
+                return null;
+            }
+            return $decoded;
+        } catch (\Exception $e) {
+            $this->lastError = 'API unreachable: ' . $e->getMessage();
+            return null;
+        }
     }
 
     public function getLastError(): ?string
@@ -24,9 +58,11 @@ class ApiClient
     private function request(string $method, string $endpoint, array $data = []): mixed
     {
         $this->lastError = null;
-        $options = [
-            'headers' => ['Content-Type' => 'application/json'],
-        ];
+        $headers = ['Content-Type' => 'application/json'];
+        if ($token = $this->getToken()) {
+            $headers['Authorization'] = 'Bearer ' . $token;
+        }
+        $options = ['headers' => $headers];
 
         if (!empty($data)) {
             $options['json'] = $data;
@@ -66,7 +102,6 @@ class ApiClient
     public function createAdherent(array $data): ?array { return $this->request('POST', '/adherents', $data); }
     public function updateAdherent(int $id, array $data): ?array { return $this->request('PUT', '/adherents/' . $id, $data); }
     public function deleteAdherent(int $id): ?array { return $this->request('DELETE', '/adherents/' . $id); }
-    public function renouvelerAdherent(int $id): ?array { return $this->request('PATCH', '/adherents/' . $id . '/renouvellement'); }
 
     // ─── TOURNOIS ───────────────────────────────────────────────────────────
 
@@ -128,4 +163,13 @@ class ApiClient
     public function createScore(array $data): ?array { return $this->request('POST', '/scores', $data); }
     public function updateScore(int $id, array $data): ?array { return $this->request('PUT', '/scores/' . $id, $data); }
     public function deleteScore(int $id): ?array { return $this->request('DELETE', '/scores/' . $id); }
+
+    // ─── USERS ──────────────────────────────────────────────────────────────
+
+    public function getUsers(): array { return $this->request('GET', '/users') ?? []; }
+    public function getUser(int $id): ?array { return $this->request('GET', '/users/' . $id); }
+    public function createUser(array $data): ?array { return $this->request('POST', '/users', $data); }
+    public function updateUser(int $id, array $data): ?array { return $this->request('PUT', '/users/' . $id, $data); }
+    public function deleteUser(int $id): ?array { return $this->request('DELETE', '/users/' . $id); }
+    public function getMe(): ?array { return $this->request('GET', '/me'); }
 }

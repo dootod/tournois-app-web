@@ -22,15 +22,7 @@ class Parametre
 
     #[ORM\Column]
     #[Groups(['tournoi:read'])]
-    private ?int $min_poule = null;
-
-    #[ORM\Column]
-    #[Groups(['tournoi:read'])]
     private ?int $max_participants = null;
-
-    #[ORM\Column]
-    #[Groups(['tournoi:read'])]
-    private ?int $max_poule = null;
 
     #[ORM\Column]
     #[Groups(['tournoi:read'])]
@@ -45,14 +37,8 @@ class Parametre
     public function getTempsCombat(): ?string { return $this->temps_combat; }
     public function setTempsCombat(string $temps_combat): static { $this->temps_combat = $temps_combat; return $this; }
 
-    public function getMinPoule(): ?int { return $this->min_poule; }
-    public function setMinPoule(int $min_poule): static { $this->min_poule = $min_poule; return $this; }
-
     public function getMaxParticipants(): ?int { return $this->max_participants; }
     public function setMaxParticipants(int $max_participants): static { $this->max_participants = $max_participants; return $this; }
-
-    public function getMaxPoule(): ?int { return $this->max_poule; }
-    public function setMaxPoule(int $max_poule): static { $this->max_poule = $max_poule; return $this; }
 
     public function getNbTatamis(): ?int { return $this->nb_tatamis; }
     public function setNbTatamis(int $nb_tatamis): static { $this->nb_tatamis = $nb_tatamis; return $this; }

@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+{% block title %}Comptes{% endblock %}
+{% block body %}
+<div class="page-header">
+    <h1 class="page-title">Comptes</h1>
+    <a href="{{ path('app_user_new') }}" class="btn btn-primary">+ Nouveau compte</a>
+</div>
+
+<div class="card">
+    <div class="card-body" style="padding:0;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Rôle</th>
+                    <th>Adhérent lié</th>
+                    <th style="width:180px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                    <tr>
+                        <td class="text-mono">{{ u.email }}</td>
+                        <td>
+                            {% if 'ROLE_ADMIN' in u.roles %}
+                                <span class="badge badge-gold">Admin</span>
+                            {% else %}
+                                <span class="badge">Utilisateur</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if u.adherent %}
+                                {{ u.adherent.prenom }} {{ u.adherent.nom }}
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="actions-cell">
+                                <a href="{{ path('app_user_edit', {id: u.id}) }}" class="btn btn-ghost btn-sm">Modifier</a>
+                                <form method="post" action="{{ path('app_user_delete', {id: u.id}) }}" style="display:inline;"
+                                      onsubmit="return confirm('Supprimer ce compte ?')">
+                                    <button type="submit" class="btn btn-danger btn-sm">✕</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="4" class="text-center text-muted" style="padding:30px;">Aucun compte.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

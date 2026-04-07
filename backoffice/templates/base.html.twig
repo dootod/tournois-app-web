@@ -42,6 +42,18 @@
                 <span class="nav-icon">🏆</span>
                 Tournois
             </a>
+
+            <div class="nav-section-label">Administration</div>
+
+            <a href="{{ path('app_users') }}" class="nav-item {{ app.request.attributes.get('_route') starts with 'app_user' ? 'active' : '' }}">
+                <span class="nav-icon">🔐</span>
+                Comptes
+            </a>
+
+            <a href="{{ path('app_logout') }}" class="nav-item">
+                <span class="nav-icon">⎋</span>
+                Déconnexion
+            </a>
         </nav>
 
         <div class="sidebar-footer">

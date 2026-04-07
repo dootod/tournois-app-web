@@ -16,7 +16,6 @@ class DashboardController extends AbstractController
     {
         $adherents  = $this->api->getAdherents();
         $tournois   = $this->api->getTournois();
-        $matchs     = [];
         $participants = $this->api->getParticipants();
 
         // Stats rapides
@@ -26,7 +25,6 @@ class DashboardController extends AbstractController
         return $this->render('dashboard/index.html.twig', [
             'nb_adherents'    => count($adherents),
             'nb_tournois'     => count($tournois),
-            'nb_matchs'       => count($matchs),
             'nb_participants' => count($participants),
             'tournois_ouverts' => count($tournoiOuverts),
             'tournois_en_cours' => count($tournoiEnCours),

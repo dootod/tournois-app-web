@@ -91,12 +91,4 @@ class AdherentController extends AbstractController
         $this->addFlash('success', 'Adhérent supprimé.');
         return $this->redirectToRoute('app_adherents');
     }
-
-    #[Route('/{id}/renouvellement', name: 'app_adherent_renouvellement', methods: ['POST'])]
-    public function renouvellement(int $id): Response
-    {
-        $this->api->renouvelerAdherent($id);
-        $this->addFlash('success', 'Adhésion renouvelée.');
-        return $this->redirectToRoute('app_adherents');
-    }
 }

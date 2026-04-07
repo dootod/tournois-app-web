@@ -52,6 +52,12 @@ class Adherent
     #[ORM\OneToMany(targetEntity: Participant::class, mappedBy: 'adherent')]
     private Collection $participants;
 
+    #[ORM\OneToOne(mappedBy: 'adherent', targetEntity: User::class)]
+    private ?User $user = null;
+
+    public function getUser(): ?User { return $this->user; }
+    public function setUser(?User $user): static { $this->user = $user; return $this; }
+
     public function __construct()
     {
         $this->participants = new ArrayCollection();

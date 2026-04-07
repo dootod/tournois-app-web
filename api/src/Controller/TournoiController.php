@@ -145,22 +145,11 @@ class TournoiController extends AbstractController
                 
                 // Validation des paramètres
                 $tempsCombat = $p['temps_combat'] ?? 5;
-                $minPoule = $p['min_poule'] ?? 3;
-                $maxPoule = $p['max_poule'] ?? 6;
                 $maxParticipants = $p['max_participants'] ?? 32;
                 $nbTatamis = $p['nb_tatamis'] ?? 2;
 
-                if ($minPoule > $maxPoule) {
-                    return $this->json([
-                        'error' => 'Paramètres invalides',
-                        'message' => 'Le minimum par poule ne peut pas dépasser le maximum'
-                    ], Response::HTTP_BAD_REQUEST);
-                }
-
                 $parametre->setTempsCombat((string) max(1, $tempsCombat));
-                $parametre->setMinPoule(max(2, $minPoule));
                 $parametre->setMaxParticipants(max(4, $maxParticipants));
-                $parametre->setMaxPoule(max(2, $maxPoule));
                 $parametre->setNbTatamis(max(1, $nbTatamis));
                 $parametre->setTournoi($tournoi);
                 $tournoi->setParametre($parametre);

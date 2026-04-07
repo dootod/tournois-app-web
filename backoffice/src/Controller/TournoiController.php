@@ -38,9 +38,7 @@ class TournoiController extends AbstractController
                 'iban'               => $iban !== '' && $iban !== null ? trim($iban) : null,
                 'parametre' => [
                     'temps_combat'     => $request->request->get('temps_combat', '5.00'),
-                    'min_poule'        => (int) $request->request->get('min_poule', 3),
                     'max_participants' => (int) $request->request->get('max_participants', 32),
-                    'max_poule'        => (int) $request->request->get('max_poule', 6),
                     'nb_tatamis'       => (int) $request->request->get('nb_tatamis', 2),
                 ],
             ];

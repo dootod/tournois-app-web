@@ -298,33 +298,6 @@ class AdherentController extends AbstractController
         }
     }
 
-    // PATCH /api/adherents/{id}/renouvellement
-    #[Route('/{id}/renouvellement', name: 'adherent_renouvellement', methods: ['PATCH'])]
-    public function renouvellement(int $id): JsonResponse
-    {
-        try {
-            if ($id <= 0) {
-                return $this->json(['error' => 'ID invalide'], Response::HTTP_BAD_REQUEST);
-            }
-
-            $adherent = $this->adherentRepository->find($id);
-            if (!$adherent) {
-                return $this->json([
-                    'error' => 'Non trouvé',
-                    'message' => 'L\'adhérent n\'existe pas'
-                ], Response::HTTP_NOT_FOUND);
-            }
-
-            $adherent->setDateAdhesion(new \DateTime());
-            $this->em->flush();
-
-            $result = $this->serializer->serialize($adherent, 'json', ['groups' => 'adherent:read']);
-            return new JsonResponse($result, Response::HTTP_OK, [], true);
-        } catch (\Exception $e) {
-            return $this->json(['error' => 'Erreur lors du renouvellement'], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-    }
-
     // DELETE /api/adherents/{id}
     #[Route('/{id}', name: 'adherent_delete', methods: ['DELETE'])]
     public function delete(int $id): JsonResponse
